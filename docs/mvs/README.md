@@ -58,7 +58,7 @@ flowchart TD
 
 ## 계보
 
-원본: [jamesondh/chimera-vocal-synth](https://github.com/jamesondh/chimera-vocal-synth) (MIT). MVS는 GitHub 포크 네트워크에서 분리된 독립 파생 저장소다. [출처와 분리 이력](PROVENANCE.md)을 명시한다. 기존 [LICENSE](../../LICENSE), 제3자 라이선스 및 원본 문서를 보존한다. [기존 음향 설계](../architecture.md), [Rust 엔진 계약](../rust-engine.md), [언어 프런트엔드](../language-front-ends.md), [3D 리그](../rig.md)는 MVS의 기술 기반이다. 이름 변경은 신규 기능 구현을 의미하지 않는다.
+원본: [jamesondh/chimera-vocal-synth](https://github.com/jamesondh/chimera-vocal-synth) (MIT). MVS는 GitHub 포크 네트워크에서 분리된 독립 파생 저장소다. [출처와 분리 이력](PROVENANCE.md)을 명시한다. 기존 [LICENSE](../../LICENSE), 제3자 라이선스 및 원본 문서를 보존한다. [기존 음향 설계](../architecture.md), [Rust 엔진 계약 한국어판](../rust-engine.ko.md) · [영문 원본](../rust-engine.md), [언어 프런트엔드](../language-front-ends.md), [3D 리그](../rig.md)는 MVS의 기술 기반이다. 이름 변경은 신규 기능 구현을 의미하지 않는다.
 
 MVS의 재미는 가상의 생물을 만들고, 그 생물에게 목소리를 주고, 마침내 음악을 주는 데 있다.
 
