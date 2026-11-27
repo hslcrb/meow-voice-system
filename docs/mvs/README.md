@@ -1,10 +1,10 @@
-# MVS — Meow Voice System 🐈
+# 먀용 작업실 · MVS 연구 문서 🐈
 
 > 목소리를 흉내 내는 것을 넘어, 목소리가 태어나는 기관을 설계한다.
 
 - 기획일: 2026-11-27 (KST)
 - 소속 구상: IRIS / 생체음향 연구
-- 상태: **설계 제안**. 고양이 모델, 인간-고양이 혼합, MR 자동 가창 및 개인화 음향 연구, 가상 악기·오케스트라 연구 기능은 아직 구현되지 않았다.
+- 상태: **실험용 작업실과 별도 장기 설계**. 현재 실행 계약은 [작업실 사용법](STUDIO.md)을 따른다. 고양이풍·인간풍·혼합은 근사 음색이며, 정밀 성대 시뮬레이션과 완전한 한국어 가창, 개인화 음향 연구, 가상 악기·오케스트라는 연구 범위다.
 
 ## 출발점
 
@@ -44,18 +44,22 @@ flowchart TD
 
 | 문서 | 내용 |
 |---|---|
-| [DIAGRAMS](DIAGRAMS.md) | 전체 연구 도식 아틀라스 |
-| [VISION](VISION.md) | 제품 목표, 기능 범위, 확장 구상 |
-| [BIOACOUSTICS](BIOACOUSTICS.md) | 고양이, 인간, 하이브리드 발성 물리 |
-| [VOICE_HOMAGE](VOICE_HOMAGE.md) | 인간 음성의 음향적 오마주, 개인화 연구 및 가상 보컬의 창작 |
-| [SINGING](SINGING.md) | 가사·시간·음정·MR, 자동 가창 및 데이터 계약 |
-| [VIRTUAL_INSTRUMENTS](VIRTUAL_INSTRUMENTS.md) | 가상 악기, 팝 밴드, 오케스트라 및 공간 음향 |
-| [PROVENANCE](PROVENANCE.md) | 포크 네트워크 분리, 원본 저작권과 독립 연구 계보 |
-| [ARCHITECTURE](ARCHITECTURE.md) | Rust/WASM, 코드 연결 지점, 실시간 처리, UI |
-| [ROADMAP](ROADMAP.md) | 개발 순서, 검증, 운영, 위험 및 결정 사항 |
+| [작업실 사용법](STUDIO.md) | 지금 실행 가능한 한국어 UI·가사/음정 JSON·WAV 명령 |
+| [원본 엔진 안내](CHIMERA.md) | 기존 기술 자료와 출처의 한국어 길잡이 |
+| [전체 도식](DIAGRAMS.md) | 전체 연구 도식 아틀라스 |
+| [제품 비전](VISION.md) | 제품 목표, 기능 범위, 확장 구상 |
+| [생체음향](BIOACOUSTICS.md) · [고양이 발성의 연구 근거](FELINE_EVIDENCE.md) | 고양이, 인간, 하이브리드 발성 물리 및 실험과 근거의 구분 |
+| [목소리 오마주](VOICE_HOMAGE.md) | 인간 음성의 음향적 오마주, 개인화 연구 및 가상 보컬의 창작 |
+| [가창 설계](SINGING.md) · [가사 제공처 비교](LYRICS_PROVIDERS.md) | 가사·시간·음정·MR, 자동 가창 및 데이터 계약, 제공처 검증 범위 |
+| [가상 악기](VIRTUAL_INSTRUMENTS.md) | 가상 악기, 팝 밴드, 오케스트라 및 공간 음향 |
+| [계보 및 권리](PROVENANCE.md) | 포크 네트워크 분리, 원본 저작권과 독립 연구 계보 |
+| [시스템 구조](ARCHITECTURE.md) | Rust/WASM, 코드 연결 지점, 실시간 처리, UI |
+| [로드맵](ROADMAP.md) | 개발 순서, 검증, 운영, 위험 및 결정 사항 |
 
 ## 계보
 
 원본: [jamesondh/chimera-vocal-synth](https://github.com/jamesondh/chimera-vocal-synth) (MIT). MVS는 GitHub 포크 네트워크에서 분리된 독립 파생 저장소다. [출처와 분리 이력](PROVENANCE.md)을 명시한다. 기존 [LICENSE](../../LICENSE), 제3자 라이선스 및 원본 문서를 보존한다. [기존 음향 설계](../architecture.md), [Rust 엔진 계약](../rust-engine.md), [언어 프런트엔드](../language-front-ends.md), [3D 리그](../rig.md)는 MVS의 기술 기반이다. 이름 변경은 신규 기능 구현을 의미하지 않는다.
 
 MVS의 재미는 가상의 생물을 만들고, 그 생물에게 목소리를 주고, 마침내 음악을 주는 데 있다.
+
+[실험판 개발·검증 기록](DEVLOG.md) · [데스크톱 스틸](assets/studio-desktop.webp) · [모바일 스틸](assets/studio-mobile.webp)

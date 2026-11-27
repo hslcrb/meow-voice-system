@@ -1,60 +1,21 @@
-# Contributing
+# 먀용 작업실 기여 안내 🐈
 
-PRs are welcome, and most of them here are written with coding agents. This page is for you and
-your agent; [AGENTS.md](AGENTS.md) holds the rules for the code itself.
+처음 오셨나요? “개발하고 싶으면 한국어 좀 배우라곻 ㅎㅎ”는 우리 작업실 농담입니다. 진짜 기준은 간단해요. 동작하는 작은 변경과 그 증거를 보여 주세요. 코드 식별자나 외부 API 이름은 멀쩡히 두고요.
 
-## Start from the vision
+## 작업을 고르기
 
-[README → Vision & scope](README.md#vision--scope) decides what gets merged. Work outside it is
-declined however well it's built: a new mode that isn't the voice, an export pipeline, tooling for
-one person's workflow, a sequencer. If you're unsure whether an idea fits, open an issue or a draft
-PR and ask before you build much.
+[제품 비전](docs/mvs/VISION.md)과 [로드맵](docs/mvs/ROADMAP.md)에서 기존 기능·신규 연구를 구분하세요. 확신이 없다면 구현하기 전에 이슈나 초안에서 범위를 정하고, 서로 관계없는 수정은 별도 작업으로 남깁니다. 원본 CHIMERA의 범위나 이미 끝난 일을 그대로 MVS에 적용하지 않습니다. [프로젝트 지침](AGENTS.md)의 엔진·실시간 제약을 지킵니다.
 
-Solve one problem per PR. Split unrelated fixes, and leave drive-by refactors for their own PR.
+## 확인이 먼저
 
-## Use a strong model, and review the work
+- **소리:** 같은 악보·시드·샘플레이트의 전후 오디오나 스펙트로그램과 실제로 들은 변화. `bun tools/spectrogram.ts`를 사용할 수 있습니다. 음향 차이가 의도된 경우만 골든을 갱신합니다.
+- **화면:** 작은 휴대폰과 데스크톱에서 전후 캡처. 움직임·타이밍이면 짧은 녹화도 남깁니다. 스크린샷으로 음향 싱크를 입증할 수는 없어요.
+- **오류:** 수정 전 실패하고 수정 후 통과하는 재현 테스트. 실제 명령과 결과를 적습니다.
+- **언어:** 한국어 표시 문구와 실제 발음은 따로 확인합니다. 발음 변경은 원어민 검수 및 기존 언어 회귀 확인을 권장합니다.
+- **공통:** 못 한 검사는 못 했다고 씁니다. 동의·이용권한 없는 가사, 녹음, 음원·악보를 예제나 스냅샷에 넣지 않습니다. CI를 추가하기보다 [지침의 로컬 검사](AGENTS.md#바꾸면-꼭-확인할-것)를 실행합니다.
 
-- Use the most capable model you have, with reasoning effort to match the work's complexity and
-  risk.
-- Before you open the PR, have a fresh agent review the diff and fix what it finds (or say in the
-  PR why you didn't). A reviewer from a different model family tends to catch more; we recommend
-  one but don't require it.
-- Follow [AGENTS.md](AGENTS.md): the engine's contract, the golden tests, and the checks to run for
-  the files you touched.
+## PR은 처음 화면에서 알 수 있게
 
-## Show the change works
+[PR 양식](.github/pull_request_template.md)에 바뀐 점, 근거, 영향과 위험, 실행한 검사 순으로 씁니다. 새 파일 포맷·저장 데이터·공개 API처럼 되돌리기 어려운 변경은 눈에 띄게 밝힙니다. 마지막에는 도구를 썼다면 사용한 모델과 도구, 검토에 별도 모델이 쓰였다면 그 사실을 적습니다. 직접 만들었다면 ‘에이전트 미사용’으로 충분합니다.
 
-Put the evidence in the PR, not in git.
-
-- **Sound**: before/after audio of the same phrase, or before/after spectrograms
-  (`bun tools/spectrogram.ts`), and say what you hear change. Re-bless the goldens. Voice tuning
-  follows [docs/hill-climb/](docs/hill-climb/README.md).
-- **UI**: before/after screenshots, including at phone width; a short recording when motion or
-  timing matters.
-- **Bug fix**: the reproduction, kept as a test that fails before the fix and passes after.
-- **Language**: a native speaker's check, and English unchanged
-  ([docs/language-front-ends.md](docs/language-front-ends.md)).
-- Say what you couldn't check.
-
-## Write the PR top-down
-
-Someone who reads only the first screen should know what changed, why, how you know it works, and
-what could break. Details go below. Use the sections in the
-[PR template](.github/pull_request_template.md), and keep prose short.
-
-- **Title**: the area and what changed, in searchable words, for example
-  `Play: grabbing the face before any audio starts it`.
-- **Summary**: two to four sentences. Add a small visual if it makes the point faster: a diff of a
-  call tree or file tree, a spectrogram, a screenshot.
-- **Evidence**: before and after, as above.
-- **Risk**: is this easy to undo (a two-way door) or hard to undo (one-way: a wire format, saved
-  songs, a public API)? What else could it break: the goldens, the plugin, phones, other languages?
-- **Details**: design choices, what you ruled out, the checks you ran with their numbers.
-- **Attribution**, last line: the model and harness that wrote the code, and the reviewer's model if
-  you used one, for example `Written by Claude Opus 5.5 in Claude Code; reviewed by GPT-5 in Codex.`
-  Write `No agent` if you wrote it yourself.
-
-## Nothing copyrighted
-
-No copyrighted audio, lyrics or scores in git, and nothing derived from them. Contributions are
-under the [MIT license](LICENSE).
+기여는 [MIT 라이선스](LICENSE)를 따릅니다. [CHIMERA 출처와 제3자 권리](docs/mvs/PROVENANCE.md)를 보존합니다.

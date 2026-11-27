@@ -1,171 +1,46 @@
-# MVS — Meow Voice System 🐈
+# 먀용 작업실 · Meow Voice System 🐈🎙️
 
-**MVS is an independent experimental derivative of [CHIMERA](https://github.com/jamesondh/chimera-vocal-synth) by Jameson Hodge, detached from the GitHub fork network.**
+**가사랑 음정을 주세요. 반짝이는 작업실에서 노래는 냥이가 합니다.**
 
-원본 CHIMERA를 포크한 뒤 GitHub 포크 네트워크를 떠나 독립 저장소로 운영하는 파생 연구 프로젝트입니다. 원본 MIT 라이선스와 저작권 표기를 유지합니다. [출처 및 계보 / Provenance](docs/mvs/PROVENANCE.md).
+먀용의 자존심은 반짝이보다 타임라인. 쉼표에서는 정말 쉽니다. ㅎㅎ
 
-고양이의 발성기관을 시뮬레이션하고, 인간과 고양이의 발성을 결합하며, 가사·음정·MR에 맞춰 가상의 보컬이 노래하도록 만드는 연구 구상입니다.
+MVS는 고양이풍·인간풍·혼합 가상 보컬을 실험하는 한국어 프로젝트입니다. 새 작업실은 가사 음절과 음표의 시작·길이를 직접 지정하고, 선택한 음색으로 오프라인 WAV를 만드는 실험판입니다. 고양이 성대의 정밀 물리 재현이나 실제 사람의 발음·목소리 복제는 하지 않습니다. [연구 설계와 구현 상태](docs/mvs/README.md)
 
-MVS는 인간의 발성에서 영감을 얻어 새로운 가상 보컬을 설계하는 가창 합성 연구도 지향합니다. 본인 또는 동의한 참여자의 음향 연구, 물리 모델링, 독립적 음악 창작을 결합합니다.
+![데스크톱에서 열린 한국어 먀용 작업실](docs/mvs/assets/studio-desktop.webp)
 
-장기적으로는 물리 모델링 기반 가상 악기와 오케스트라를 구축하여 클래식부터 팝까지 연주하는 환경을 연구합니다. AI는 선택적으로 작곡·편곡·지휘를 보조하고, 실제 음원은 가상 악기와 발성 모델에서 합성하는 방식입니다.
+[모바일 작업실 화면](docs/mvs/assets/studio-mobile.webp) · [실행과 사용법](docs/mvs/STUDIO.md)
 
-- [MVS 기획 및 설계 문서 (한국어)](docs/mvs/README.md)
-- [생체음향](docs/mvs/BIOACOUSTICS.md) · [자동 가창](docs/mvs/SINGING.md) · [아키텍처](docs/mvs/ARCHITECTURE.md) · [로드맵](docs/mvs/ROADMAP.md)
-- [Voice Homage — 새로운 가상 보컬의 지평](docs/mvs/VOICE_HOMAGE.md)
-- [Virtual Instruments — 가상 악기와 오케스트라](docs/mvs/VIRTUAL_INSTRUMENTS.md)
-- **Status:** design stage; feline synthesis, hybrid singing, MR synchronization, personal voice research and virtual instruments/orchestra are proposed, not implemented.
-- GitHub Actions workflows have been removed from this independent derivative. Use local validation; upstream CI/install references below describe CHIMERA, not MVS releases.
+## 작업실을 열어 보기
 
-## MVS research architecture / 연구 개념도
-
-```mermaid
-flowchart TD
- A["MVS · Meow Voice System"] --> B["FELIS · 고양이 발성"]
- A --> C["HYBRID · 가상 생물 발성"]
- A --> D["VOICE HOMAGE · 개인화 연구"]
- B --> E["SING · 가창"]
- C --> E
- D --> E
- A --> F["가상 악기 연구"]
- E --> G["공통 악보와 타임라인"]
- F --> G
- G --> H["합창 · 팝 · 오케스트라"]
- H --> I["믹싱 · 공간 음향 · 렌더"]
- J["선택적 AI 작곡·편곡·지휘"] -.-> G
-```
-
-Conceptual research roadmap, not implemented features. [전체 도식 모음 / Diagram atlas](docs/mvs/DIAGRAMS.md).
-
----
-
-## Upstream CHIMERA
-
-A physical-modeling voice synthesizer in the browser. Every sound comes from a simulated
-airway (lungs, vocal folds or syrinx, a branched vocal tract, lips, nose), not from samples.
-The engine is Rust, compiled to WebAssembly for an AudioWorklet; the same code runs natively
-for tests and the `chimera` CLI.
-
-## Vision & scope
-
-1. **One instrument**: a physically modeled voice (lungs, vocal folds, throat, mouth). No
-   samples, no neural audio.
-2. **The web app is the primary surface**: anyone should be able to make songs in it without
-   an LLM's help. Mobile is the likely next surface. The plugin (CLAP/VST3/AU) still ships, but
-   it's secondary.
-3. **As realistic as we can make it**: the main push is to see how close the simulation gets to
-   a real voice. The robotic, Vocaloid-like sound people like today stays playable as a preset
-   ([#93](https://github.com/jamesondh/chimera-vocal-synth/issues/93)).
-4. **Languages enter through one shared front-end design**, not one-off hacks. Each needs a
-   native speaker's check and must leave English unchanged.
-5. **The design language (the vector display) is settled**; the look within it can still evolve.
-6. **Nothing copyrighted in git**; MIT; a deterministic, real-time-safe engine.
-7. **The 3D head can be worn by a body** ([docs/rig.md](docs/rig.md)), for the videos people
-   make with the voice, posed by joint angles or moved by other tools' motion (Mixamo, BVH,
-   glTF): a small library, not animation software (no timeline, no renderer).
-8. **Not now**: a DAW or sequencer, a light theme, multi-voice dialogue, translating the
-   interface (the voice speaks and sings many languages; the labels stay in English).
-
-## What it does
-
-- **Play**: drag the tongue, lips and jaw in a live cutaway of the head; vowel pad, encoders,
-  computer keyboard and Web MIDI.
-- **Speak**: English text (CMUdict with a letter-to-sound fallback), Turkish text (EN/TR) or
-  IPA, turned into gestures and prosody, with the gestural score and a consonant chart on screen.
-  In IPA mode a notice under the box lists the symbols and marks the voice doesn't say
-  (`chimera render speech` prints the same as warnings).
-- **Sing**: type words and the **Sing** button sings them to a tune picked by its mood, each line
-  fitted to a phrase of it (Tempo and Key on the Voice screen); **Record video** sings it again into a
-  9:16 clip to share. The keys sing the same words a syllable at a time, legato or not, onto a
-  pitch roll; consonants land before the beat. Lyrics can be English, Turkish (chosen with EN/TR:
-  Latin script can't tell them apart), Korean (Hangul: one block per note, with Korean sound
-  rules), Japanese (kana, one mora per note) or Russian; each language is a front end
-  ([docs/language-front-ends.md](docs/language-front-ends.md)).
-- **Beatbox**: pads and a step sequencer, every drum an articulatory gesture.
-- **Bestiary**: songbird (two-voice syrinx), seal, alligator and elephant.
-- **Duet** (`?show=<id>`): two 3D heads replay a pre-rendered song.
-
-Male, female and child bodies blend continuously. Everything on screen animates from live
-engine state: pressure in the airway, airflow, the vocal folds, spectra and formants.
-
-## Run it
-
-Needs Rust with the `wasm32-unknown-unknown` target, and Bun.
+저장소 루트에서 실행합니다. 새 작업실은 로컬 정적 페이지이며, 기존 CHIMERA 개발 서버와 별개입니다.
 
 ```sh
-bun install
-bun run dev        # builds the wasm, then Vite on 127.0.0.1:5317
-bun run test       # wasm build, cargo test --workspace, bun test tests
+python3 -m http.server 8000
 ```
 
-The AudioWorklet needs a secure context, so open it on localhost or over HTTPS (for example
-`tailscale serve`). Vercel builds it with `vercel.json`.
+브라우저에서 [http://localhost:8000/studio/](http://localhost:8000/studio/)를 엽니다. 사용자 제공 JSON과 권리 있는 반주 WAV를 준비하세요. [입력 형식·음악 내보내기](docs/mvs/STUDIO.md)
 
-## As a plugin
-
-Early: a CLAP, VST3 and AU instrument for macOS, and CLAP and VST3 for Windows, with the same UI in
-a webview, in a window you can resize. On Linux (CLAP and VST3) the same UI opens in your web browser.
-MIDI notes sing the lyrics, one syllable per note (Sing); play the posture you've set (Play); say
-the next line of text (Speak); or play mouth drums and hum, with a beat that follows the host's tempo
-(Beatbox). Everything saves with the project, and the voice parameters can be automated.
-
-On a Mac (signed and notarised) or on Linux (x86_64), the release installs with one command (or
-download it from [chimera.audio/plugin](https://chimera.audio/plugin/)):
+터미널에서 음악만 만들려면:
 
 ```sh
-curl -fsSL https://chimera.audio/install.sh | sh
+node studio/cli.mjs validate score.json
+node studio/cli.mjs render score.json --out meow.wav
 ```
 
-To build it yourself, with Xcode's command line tools as well as the above:
+화면까지 필요하면 같은 악보를 재생하는 독립 무대 HTML을 만들고, 선택 도구로 화면과 WAV를 합친 MP4도 출력할 수 있어요. [화면·음악 전달 절차](docs/mvs/STUDIO.md#결과물-두-가지)를 확인하세요.
 
-```sh
-crates/chimera-plugin/macos/build.sh --install
-```
+## 문서 바로 가기
 
-Or, with GitHub's `gh` logged in, install CI's newest build without building anything:
+- **처음이라면** [작업실 매뉴얼](docs/mvs/STUDIO.md) · [문서 지도](docs/mvs/README.md)
+- **검증 기록** [개발기](docs/mvs/DEVLOG.md) · [가사 공급처 비교](docs/mvs/LYRICS_PROVIDERS.md)
+- **개발한다면** [기여 안내](CONTRIBUTING.md) · [저장소 작업 지침](AGENTS.md) · [가창 작업실 스킬](.agents/skills/mvs-studio/SKILL.md)
+- **연구가 궁금하다면** [고양이·인간 생체음향](docs/mvs/BIOACOUSTICS.md) · [가창 설계](docs/mvs/SINGING.md) · [전체 도식](docs/mvs/DIAGRAMS.md) · [가상 악기·오케스트라](docs/mvs/VIRTUAL_INSTRUMENTS.md)
+- **기존 엔진을 만지고 싶다면** [CHIMERA 기술 안내](docs/mvs/CHIMERA.md)
 
-```sh
-crates/chimera-plugin/macos/update.sh
-```
+“개발하고 싶으면 한국어 배우라곻 ㅎㅎ.” 물론 농담입니다. 공개 문서는 한국어가 기본이고 기술 이름, 명령, 라이선스의 원문은 그대로 읽을 수 있어요.
 
-To build it on Linux: `crates/chimera-plugin/linux/build.sh --install`. On Windows, in Git Bash with
-Rust's MSVC toolchain: `crates/chimera-plugin/windows/build.sh --install`. The Windows build isn't
-released yet. See [docs/plugin.md](docs/plugin.md), "Releases".
+## 이 프로젝트는 어디에서 왔나요?
 
-Offline renders and measurement:
+Jameson Hodge의 [CHIMERA Vocal Synth](https://github.com/jamesondh/chimera-vocal-synth)를 포크한 후 **GitHub 포크 네트워크에서 분리(Leave fork network)**한 독립 파생 저장소입니다. 분리와 저작권은 별개입니다. 원본의 Rust/WASM 음향 엔진과 브라우저 인터페이스, MIT 라이선스와 제3자 고지를 보존합니다. 이 프로젝트의 실험용 작업실과 원본의 기능·배포는 구분합니다. [계보와 권리](docs/mvs/PROVENANCE.md) · [MIT 라이선스](LICENSE)
 
-```sh
-cargo run --release -p chimera-cli -- render speech|text|song|notes|beatbox|creature|vowels …
-cargo run --release -p chimera-cli -- diagnose       # nasal leakage, formants, bandwidths, pitch
-cargo run --release -p chimera-cli -- compare csd    # against a real singer (docs/csd-comparison.md)
-cargo run --release -p chimera-cli -- compare tsp    # against 23 real speakers (docs/speech-comparison.md)
-bun tools/spectrogram.ts in.wav out.png
-bun tools/musicxml-to-notes.ts score.mxl P1 --out p1.json   # a score's part → `render notes` melody
-```
-
-## Docs
-
-- [docs/architecture.md](docs/architecture.md): the acoustic model (FDTD airway, sources,
-  anatomy, gestures), and its [references and credits](docs/architecture.md#references-and-credits).
-- [docs/rust-engine.md](docs/rust-engine.md): the engine's real-time and determinism contract,
-  and the browser boundary.
-- [docs/ui-redesign.md](docs/ui-redesign.md) and [docs/mockups/](docs/mockups/): the vector
-  display look.
-- [docs/csd-comparison.md](docs/csd-comparison.md): scoring the voice against the Children's
-  Song Dataset.
-- [docs/speech-comparison.md](docs/speech-comparison.md): scoring the speech against real
-  speakers, phone by phone (the TSP speech database).
-- [docs/russian.md](docs/russian.md): how Russian text is read, and what is approximate.
-- [docs/turkish.md](docs/turkish.md): how Turkish text is read: k, g and l, ğ, stress.
-- [docs/hill-climb/](docs/hill-climb/): the rules and log for tuning the voice one measured
-  step at a time.
-- [docs/rig.md](docs/rig.md): the body rig the 3D head can be worn on.
-
-Contributing: see [CONTRIBUTING.md](CONTRIBUTING.md). Agents: see [AGENTS.md](AGENTS.md).
-
-## License
-
-[MIT](LICENSE). Bundled third-party files keep their own licenses: the CMU Pronouncing
-Dictionary ([public/data/CMUDICT-LICENSE.txt](public/data/CMUDICT-LICENSE.txt)), the fonts
-([public/fonts/](public/fonts/)) and the body rig's mesh (CC0, MakeHuman and MPFB2:
-[docs/rig.md](docs/rig.md#provenance)).
+원본 개발자와 기여자 여러분께 감사합니다. 그리고 냥이 여러분, 박자 맞춰 주세요. 😼

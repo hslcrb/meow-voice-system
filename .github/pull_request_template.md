@@ -1,29 +1,17 @@
-<!--
-Read CONTRIBUTING.md. Write top-down: the first screen says what changed, why, how you
-know it works and what could break. Details go below. Keep prose short.
-Title: the area and what changed, in searchable words.
--->
+## 무엇을 왜 바꿨나요?
 
-## Summary
+<!-- 관련 이슈와 바꾸기 전 문제, 해결의 핵심을 앞에 적어 주세요. -->
 
-<!-- Two to four sentences: what changes, and why. A small visual if it helps
-(a diff of a call tree or file tree, a spectrogram, a screenshot). -->
+## 어떻게 확인했나요?
 
-## Evidence
+<!-- 실제 명령·측정값·전후 증거를 적어 주세요. 못 한 검사도 밝혀 주세요. -->
 
-<!-- Before and after. Sound: audio or spectrograms of the same phrase. UI: screenshots,
-including phone width. Bug: the test that failed before and passes now.
-Say what you couldn't check. -->
+## 무엇에 영향이 있나요?
 
-## Risk
+<!-- 기존 동작, 작은 화면, 출력 파일 형식, 음성 골든과 실제 위험을 구분해 주세요. -->
 
-<!-- Easy to undo or hard to undo (a wire format, saved songs, a public API)?
-What else could break: the goldens, the plugin, phones, other languages? -->
+## 더 자세한 설명
 
-## Details
+<!-- 채택하지 않은 대안, 재현 방법, 권리와 출처가 있다면 남겨 주세요. -->
 
-<!-- Design choices, what you ruled out, the checks you ran with their numbers. -->
-
-<!-- Last line: the model and harness that wrote the code, and the reviewer's model if
-you used one. Example: Written by Claude Opus 5.5 in Claude Code; reviewed by GPT-5 in Codex.
-Or: No agent. -->
+<!-- 마지막 줄: 작성과 리뷰에 사용한 모델·도구 또는 ‘에이전트 미사용’. -->
