@@ -26,7 +26,7 @@ MVS는 CHIMERA의 Rust 발성 엔진에서 출발한 독립 파생 프로젝트�
 
 ## 바꾸면 꼭 확인할 것
 
-- [Rust 엔진 계약](docs/rust-engine.md): 초월 함수는 `chimera::math`를 거치고, 렌더 중 동적 할당·I/O를 하지 않으며 블록 크기에 따라 결과가 바뀌지 않는다. 16 kHz 장치에서도 `cargo test -p chimera --test engine the_voice_holds`로 유한성을 검증한다.
+- [Rust 엔진 계약 한국어판](docs/rust-engine.ko.md) · [영문 원본](docs/rust-engine.md): 초월 함수는 `chimera::math`를 거치고, 렌더 중 동적 할당·I/O를 하지 않으며 블록 크기에 따라 결과가 바뀌지 않는다. 16 kHz 장치에서도 `cargo test -p chimera --test engine the_voice_holds`로 유한성을 검증한다.
 - 음향·조음 계획 변경으로 골든이 달라지면 이유, 전후 듣기, 수치를 검토한다. 의도한 차이만 `CHIMERA_BLESS=1 cargo test --workspace --no-fail-fast`로 갱신한 후 플래그 없이 재실행한다. [골든 기준](crates/chimera/tests/golden/README.md). `*.generated.json`은 생성 도구로만 갱신한다.
 - `src/wasm/chimera.wasm`은 Git 관리 대상이 아니다. Rust 변경 뒤 `bun test tests`로만 검증하면 오래된 WASM을 시험할 수 있다. `bun run test`를 사용하고 체크아웃 사이 Cargo `target/`을 공유하지 않는다.
 - 제스처 레코드를 바꾸면 `crates/chimera-wasm/src/lib.rs`와 `src/wasm/wire.ts`를 같이 바꾸고 `LAYOUT_VERSION`을 올린다. 엔진 초기화 전 호출하는 모듈을 `src/main.tsx` 정적 가져오기에 연결하지 않는다.
