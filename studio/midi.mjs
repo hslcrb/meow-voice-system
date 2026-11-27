@@ -57,7 +57,7 @@ function trackEvents(bytes, start, end) {
     }
   }
   if(!ended||active.size)throw invalid('트랙 또는 음표 종료가 없어요.');
-  return {notes,tempos};
+  return {notes,tempos,endTick:tick};
 }
 
 function tempoMap(tempos, ppq) {
@@ -94,15 +94,21 @@ export function parseMidi(bytes) {
   if(offset!==bytes.length)throw invalid('트랙 뒤에 알 수 없는 데이터가 있어요.');
   if(format===1&&tracks.slice(1).some(t=>t.tempos.length))throw invalid('형식 1 템포는 트랙 0에 있어야 해요.');
   const toSeconds=tempoMap(tracks[0].tempos,ppq);
-  return {format,ppq,tracks:tracks.map(({notes})=>({notes:notes.sort((a,b)=>a.tick-b.tick||a.channel-b.channel||a.midi-b.midi).map(n=>{
-    const start=toSeconds(n.tick),duration=toSeconds(n.endTick)-start;
-    return {start,duration,midi:n.midi,velocity:n.velocity};
-  })}))};
+  return {format,ppq,tracks:tracks.map(({notes,endTick})=>{
+    let lastNoteTick=0;
+    const timed=notes.sort((a,b)=>a.tick-b.tick||a.channel-b.channel||a.midi-b.midi).map(n=>{
+      lastNoteTick=Math.max(lastNoteTick,n.endTick);
+      const start=toSeconds(n.tick),duration=toSeconds(n.endTick)-start;
+      return {start,duration,midi:n.midi,velocity:n.velocity};
+    });
+    return {notes:timed,...(notes.length&&endTick>lastNoteTick?{end:toSeconds(endTick)}:{})};
+  })};
 }
 
 export function scoreFromMidi(bytes, track, lyrics, options={}) {
-  const notes=Number.isInteger(track)?parseMidi(bytes).tracks[track]?.notes:undefined;
+  const selection=Number.isInteger(track)?parseMidi(bytes).tracks[track]:undefined;
+  const {notes,end}=selection??{};
   if(!notes?.length)throw invalid('음표가 들어 있는 트랙 번호를 골라 주세요.');
   if(!Array.isArray(lyrics)||lyrics.length!==notes.length)throw invalid('음표와 가사 항목 개수가 같아야 해요.');
-  return validateScore({version:1,voice:'hybrid',...options,notes:notes.map((n,i)=>({...n,lyric:lyrics[i]}))});
+  return validateScore({version:1,voice:'hybrid',...options,...(end===undefined?{}:{end}),notes:notes.map((n,i)=>({...n,lyric:lyrics[i]}))});
 }
