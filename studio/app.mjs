@@ -1,4 +1,4 @@
-import { validateScore, encodeWav, decodeWav, parseLrc } from './core.mjs';
+import { auditLrc, validateScore, encodeWav, decodeWav, parseLrc } from './core.mjs';
 import {parseMidi,scoreFromMidi} from './midi.mjs';
 
 const $ = id => document.getElementById(id);
@@ -18,6 +18,7 @@ function announce(message, error = false) {
   $('status').toggleAttribute('data-error', error);
 }
 function updateCount() {
+  clearLrcAudit();
   $('note-count').textContent = `${$('notes').children.length}개`;
   $('notes').querySelectorAll('.note').forEach((row, index) => {
     for (const input of row.querySelectorAll('input')) {
@@ -144,13 +145,28 @@ $('score-file').addEventListener('change', async () => {
     announce(`${file.name} 악보를 불러왔어요.`);
   } catch (error) { announce(`악보를 불러오지 못했어요. ${error.message}`, true); }
 });
+let lrcText, lrcRevision = 0;
+function clearLrcAudit() {
+  $('lrc-audit-results').replaceChildren();
+  $('lrc-audit-results').hidden = true;
+}
+$('notes').addEventListener('input', clearLrcAudit);
+$('score-end').addEventListener('input', clearLrcAudit);
 $('lyric-file').addEventListener('change', async () => {
+  const revision=++lrcRevision;
+  lrcText=undefined;
+  clearLrcAudit();
+  $('lrc-audit').hidden=true;
   $('lrc-preview').replaceChildren();
   $('lrc-preview').hidden = true;
   try {
     const file = localFile('lyric-file', 512 * 1024);
     if (!file) return;
-    const lines = await parseLrc(await file.text());
+    const text = await file.text();
+    if (revision!==lrcRevision) return;
+    const lines = parseLrc(text);
+    lrcText=text;
+    $('lrc-audit').hidden=false;
     for (const line of lines.slice(0, 100)) {
       const item = document.createElement('li');
       item.textContent = `${ko.format(line.start)}초 · ${line.lyric}`;
@@ -158,7 +174,28 @@ $('lyric-file').addEventListener('change', async () => {
     }
     $('lrc-preview').hidden = !lines.length;
     announce(lines.length ? `LRC ${lines.length}줄을 읽었어요. 최대 100줄을 보여 줍니다.` : '시각 표시가 있는 가사를 찾지 못했어요.', !lines.length);
-  } catch (error) { announce(`LRC를 불러오지 못했어요. ${error.message}`, true); }
+  } catch (error) {
+    if (revision===lrcRevision) announce(`LRC를 불러오지 못했어요. ${error.message}`, true);
+  }
+});
+$('lrc-audit-run').addEventListener('click', () => {
+  if (lrcText===undefined) return;
+  clearLrcAudit();
+  try {
+    const {rows} = auditLrc(collect(), lrcText);
+    const report = $('lrc-audit-results');
+    for (const row of rows.slice(0,100)) {
+      const item=document.createElement('li');
+      const sign=row.deltaMs>0?'+':row.deltaMs<0?'−':'';
+      const match=row.withinTolerance?'허용 범위 안':'범위 밖';
+      const active=row.soundingNoteNumber===null?'울리는 음표 없음':`울리는 음표 ${row.soundingNoteNumber}`;
+      item.textContent=`${row.start}초 · ${row.lyric} / 가까운 음표 ${row.noteNumber}: ${sign}${Math.abs(row.deltaMs)}ms · ${match} · ${active}`;
+      report.append(item);
+    }
+    report.hidden=false;
+    const outside=rows.filter(row=>!row.withinTolerance).length;
+    announce(`LRC ${rows.length}줄 중 ${outside}줄이 허용 범위 밖이에요. 최대 100줄 표시 · 악보는 그대로예요.`);
+  } catch(error) { announce(`시각을 비교하지 못했어요. ${error.message}`, true); }
 });
 
 let midiBytes;
