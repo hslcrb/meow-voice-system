@@ -16,6 +16,61 @@ from playwright.sync_api import expect, sync_playwright
 base = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:5847/"
 shot = Path(sys.argv[2]) if len(sys.argv) > 2 else None
 assert base.startswith(("http://127.0.0.1:", "http://localhost:"))
+def check_lrc_race(page):
+    picker = page.locator("#lyric-file")
+    preview = page.locator("#lrc-preview")
+    audit = page.locator("#lrc-audit")
+    status = page.locator("#status")
+    page.evaluate("""() => {
+        const nativeRead = File.prototype.text;
+        const pending = new Map();
+        File.prototype.text = function() {
+            if (!this.name.startsWith('delayed-')) return nativeRead.call(this);
+            return new Promise((resolve, reject) => pending.set(this.name, {resolve, reject}));
+        };
+        window.mvsLrcTest = {pending, restore: () => { File.prototype.text = nativeRead; }};
+    }""")
+
+    def choose(name, text):
+        picker.set_input_files({"name": name, "mimeType": "text/plain", "buffer": text.encode("utf-8")})
+
+    def hold(name):
+        choose(name, "[00:00.10]이전 파일")
+        page.wait_for_function("(name) => window.mvsLrcTest.pending.has(name)", arg=name)
+
+    def finish(name, reject=False):
+        page.evaluate("""async ({name, reject}) => {
+            const item = window.mvsLrcTest.pending.get(name);
+            window.mvsLrcTest.pending.delete(name);
+            if (reject) item.reject(new Error('늦은 읽기 실패'));
+            else item.resolve('[00:00.10]이전 파일');
+            await Promise.resolve();
+        }""", {"name": name, "reject": reject})
+
+    try:
+        for reject in (False, True):
+            name = "delayed-" + str(reject) + ".lrc"
+            hold(name)
+            choose("current.lrc", "[00:00.15]현재 파일")
+            expect(preview).to_have_text("0.15초 · 현재 파일")
+            finish(name, reject)
+            expect(preview.locator("li")).to_have_count(1)
+            expect(preview).to_have_text("0.15초 · 현재 파일")
+            expect(status).not_to_contain_text("늦은 읽기 실패")
+            audit.get_by_role("button").click()
+            expect(audit.locator("li")).to_have_count(1)
+            expect(audit.locator("li")).to_contain_text("현재 파일")
+            expect(audit.locator("li")).not_to_contain_text("이전 파일")
+        hold("delayed-clear.lrc")
+        picker.set_input_files([])
+        finish("delayed-clear.lrc")
+        expect(preview).to_be_hidden()
+        expect(preview.locator("li")).to_have_count(0)
+        expect(audit).to_be_hidden()
+    finally:
+        page.evaluate("() => { window.mvsLrcTest.restore(); delete window.mvsLrcTest; }")
+
+
 with sync_playwright() as p, tempfile.TemporaryDirectory() as tmp:
     browser = p.chromium.launch(
         executable_path=os.environ.get("CHROMIUM_BIN"), args=["--no-sandbox"]
@@ -255,6 +310,11 @@ with sync_playwright() as p, tempfile.TemporaryDirectory() as tmp:
             save.click()
             expect(page.locator("#status")).to_contain_text("마지막 음표")
             print("375 px edited score download and reimport retain exact validation fields and CLI WAV")
+            # Load a known valid score before checking the audit's input binding.
+            page.locator("#example").click()
+            expect(page.locator("#notes .note")).to_have_count(5)
+            check_lrc_race(page)
+            print("375 px delayed LRC success, failure and clear are isolated to the active file")
         print(width, "px existing WAV SHA-256", hashlib.sha256(downloaded).hexdigest(),
               "MusicXML WAV SHA-256", hashlib.sha256(xml_download).hexdigest())
         assert not errors, errors
