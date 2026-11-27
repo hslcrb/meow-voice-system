@@ -116,3 +116,21 @@ test('opt-in nasal coda colours only a standalone Korean note ending without shi
   assert.throws(()=>validateScore({...raw('cat'),articulation:'nasal'}),/받침/);
   assert.throws(()=>validateScore({...raw('human'),articulation:'unknown'}),/받침/);
 });
+test('LRC audit reports nearest note timing and active note without imposing a lyric match',async()=>{
+  const {auditLrc}=await import('../core.mjs');
+  const source=Object.freeze({...score('human'),notes:Object.freeze([
+    Object.freeze({start:.1,duration:.2,midi:69,lyric:'원본'}),
+    Object.freeze({start:.5,duration:.2,midi:72,lyric:'악보'}),
+  ])});
+  const lines='[offset:+10]\n[00:00.000]새 문장\n[00:00.240]다른 말\n[00:00.290]쉼 경계\n[00:00.500]셋\n[00:01.000]끝';
+  const actual=auditLrc(source,lines,{toleranceMs:90});
+  assert.deepEqual(actual, {toleranceMs:90,rows:[
+    {start:.01,lyric:'새 문장',noteNumber:1,noteStart:.1,deltaMs:90,withinTolerance:true,soundingNoteNumber:null},
+    {start:.25,lyric:'다른 말',noteNumber:1,noteStart:.1,deltaMs:-150,withinTolerance:false,soundingNoteNumber:1},
+    {start:.3,lyric:'쉼 경계',noteNumber:1,noteStart:.1,deltaMs:-200,withinTolerance:false,soundingNoteNumber:null},
+    {start:.51,lyric:'셋',noteNumber:2,noteStart:.5,deltaMs:-10,withinTolerance:true,soundingNoteNumber:2},
+    {start:1.01,lyric:'끝',noteNumber:2,noteStart:.5,deltaMs:-510,withinTolerance:false,soundingNoteNumber:null},
+  ]});
+  assert.throws(()=>auditLrc(source,lines,{toleranceMs:Infinity}),/허용/);
+  assert.throws(()=>auditLrc(source,'[offset:'+ '9'.repeat(320)+']\n[00:01]가'),/시각/);
+});

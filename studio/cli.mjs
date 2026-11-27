@@ -1,7 +1,7 @@
 import {readFile,writeFile,stat} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {decodeWav, encodeWav, parseLrc, renderScore, validateScore} from './core.mjs';
+import {auditLrc, decodeWav, encodeWav, parseLrc, renderScore, validateScore} from './core.mjs';
 import {parseMidi,scoreFromMidi} from './midi.mjs';
 
 const help=`먀용 스튜디오
@@ -9,6 +9,7 @@ const help=`먀용 스튜디오
   node studio/cli.mjs render <score.json> --out <mix.wav> [--backing <pcm16.wav>] [--vocal <stem.wav>]
   node studio/cli.mjs show <score.json> --out <stage.html> [--backing <pcm16.wav>]
   node studio/cli.mjs lrc <lyrics.lrc>
+  node studio/cli.mjs lrc-audit <score.json> --lyrics <lyrics.lrc> [--tolerance-ms N]
   node studio/cli.mjs midi-list <melody.mid>
   node studio/cli.mjs midi-import <melody.mid> --track N --lyrics <syllables.json> --out <score.json>
   node studio/cli.mjs provider-check <곡 검색어>`;
@@ -51,9 +52,9 @@ export async function providerCandidates(query,fetcher=fetch) {
 async function main(args) {
   if(!args.length||args[0]==='--help'){console.log(help);return;}
   const [op,input,...tail]=args;
-  if(!['validate','render','show','lrc','provider-check','midi-list','midi-import'].includes(op)||!input) throw Error(help);
+  if(!['validate','render','show','lrc','lrc-audit','provider-check','midi-list','midi-import'].includes(op)||!input) throw Error(help);
   const options={};
-  const allowed=op==='render'?['--out','--backing','--vocal']:op==='show'?['--out','--backing']:op==='midi-import'?['--track','--lyrics','--out']:[];
+  const allowed=op==='render'?['--out','--backing','--vocal']:op==='show'?['--out','--backing']:op==='midi-import'?['--track','--lyrics','--out']:op==='lrc-audit'?['--lyrics','--tolerance-ms']:[];
   for(let i=0;i<tail.length;i+=2){
     const k=tail[i],v=tail[i+1];
     if(!allowed.includes(k)||!v||v.startsWith('--')||Object.hasOwn(options,k)) throw Error('지원하지 않거나 값이 없는 옵션: '+k);
@@ -74,6 +75,14 @@ async function main(args) {
     return;
   }
   if(op==='lrc'){console.log(JSON.stringify(parseLrc((await readBounded(input,1_600_000)).toString('utf8')),null,2));return;}
+  if(op==='lrc-audit'){
+    const lyrics=options['--lyrics'], ms=options['--tolerance-ms'];
+    if(!lyrics||(ms!==undefined&&!/^\d{1,4}$/.test(ms))) throw Error('LRC 검수는 --lyrics와 선택적 --tolerance-ms 정수를 받습니다.');
+    const raw=JSON.parse((await readBounded(input,2_000_000)).toString('utf8'));
+    const text=(await readBounded(lyrics,1_600_000)).toString('utf8');
+    console.log(JSON.stringify(auditLrc(raw,text,ms===undefined?{}:{toleranceMs:Number(ms)}),null,2));
+    return;
+  }
   if(op==='provider-check'){console.log(JSON.stringify(await providerCandidates(input),null,2));return;}
   const score=validateScore(JSON.parse((await readBounded(input,2_000_000)).toString('utf8')));
   if(op==='validate'){console.log(JSON.stringify({title:score.title,voice:score.voice,call:score.call,sampleRate:score.sampleRate,end:score.end,articulation:score.articulation,notes:score.notes.length}));return;}

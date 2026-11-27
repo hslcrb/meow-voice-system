@@ -32,7 +32,9 @@ export function validateScore(raw) {
 
 export function parseLrc(text) {
   if(typeof text!=='string'||text.length>400000) throw Error('LRC 텍스트가 너무 큽니다.');
-  const offset=Number(/^\s*\[offset:([+-]?\d+)\]/im.exec(text)?.[1]??0)/1000;
+  const offsetMs=Number(/^\s*\[offset:([+-]?\d+)\]/im.exec(text)?.[1]??0);
+  if(!Number.isSafeInteger(offsetMs)) throw Error('LRC 보정 시각 범위를 확인해 주세요.');
+  const offset=offsetMs/1000;
   const entries=[];
   for(const line of text.split(/\r?\n/)) {
     const stamps=[...line.matchAll(/\[(\d{1,3}):([0-5]\d)(?:[.:](\d{1,3}))?\]/g)];
@@ -43,6 +45,26 @@ export function parseLrc(text) {
   }
   if(!entries.length) throw Error('시간표가 들어 있는 가사 줄을 찾지 못했어요.');
   return entries.sort((a,b)=>a.start-b.start);
+}
+
+/** Compare line starts only; never infer or rewrite lyric-to-note mappings. */
+export function auditLrc(raw, text, {toleranceMs=120}={}) {
+  if(!Number.isInteger(toleranceMs)||!isNumber(toleranceMs,0,1000)) throw Error('시각 허용 범위는 0~1,000ms 정수로 지정해 주세요.');
+  const {notes}=validateScore(raw);
+  const lines=parseLrc(text);
+  const epsilon=1e-9;
+  let next=0;
+  const rows=lines.map(line=>{
+    while(next<notes.length&&notes[next].start<=line.start+epsilon) next++;
+    const before=notes[next-1], after=notes[next];
+    const i=before&&(!after||line.start-before.start<=after.start-line.start+epsilon)?next-1:next;
+    const noteStart=notes[i].start;
+    const delta=noteStart-line.start;
+    return {...line,noteNumber:i+1,noteStart,deltaMs:Math.round(delta*1000)||0,
+      withinTolerance:Math.abs(delta)<=toleranceMs/1000+epsilon,
+      soundingNoteNumber:before&&line.start<before.start+before.duration-epsilon?next:null};
+  });
+  return {toleranceMs,rows};
 }
 
 // Rounded synthesis targets, not measurements of cat tissue or vocal tract.
