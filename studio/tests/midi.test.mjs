@@ -52,6 +52,45 @@ test('CLI imports a chosen MIDI track with supplied lyrics and renders actual WA
     const rendered=cli('render',score,'--out',wav);
     assert.equal(rendered.status,0,rendered.stderr);
     assert.equal(decodeWav(readFileSync(wav)).samples.length,66150);
-    assert.notEqual(cli('midi-import',midi,'--track','0','--lyrics',lyrics,'--out',score).status,0);
+    assert.notEqual(cli('midi-import',midi,'--track','0','--lyrics',lyrics,'--out',join(d,'empty.json')).status,0);
+    const tailScore=join(d,'tail.json'),tailWav=join(d,'tail.wav');
+    writeFileSync(midi,withTail);
+    const tailImport=cli('midi-import',midi,'--track','0','--lyrics',lyrics,'--out',tailScore);
+    assert.equal(tailImport.status,0,tailImport.stderr);
+    assert.equal(JSON.parse(readFileSync(tailScore)).end,1);
+    const tailRender=cli('render',tailScore,'--out',tailWav);
+    assert.equal(tailRender.status,0,tailRender.stderr);
+    const tailSamples=decodeWav(readFileSync(tailWav)).samples;
+    assert.equal(tailSamples.length,44100);
+    assert.ok(tailSamples.subarray(22050).every(x=>x===0));
+
   } finally {rmSync(d,{recursive:true,force:true});}
+});
+
+const withTail=Buffer.concat([one.subarray(0,14),track('00 90 45 64 83 60 80 45 00 83 60 ff 2f 00')]);
+test('selected MIDI end preserves actual silent frames and keeps no-tail output unchanged', async()=>{
+  const {renderScore}=await import('../core.mjs');
+  const s=scoreFromMidi(withTail,0,['먀']);
+  assert.equal(s.end,1);
+  const noTail=scoreFromMidi(one,0,['먀','용']);
+  assert.equal(Object.hasOwn(noTail,'end'),false);
+  const out=renderScore(s), plain=renderScore({...s,end:undefined});
+  assert.equal(out.vocal.length,44100);
+  assert.equal(plain.vocal.length,22050);
+  assert.deepEqual(out.vocal.subarray(0,22050),plain.vocal);
+  assert.ok(out.vocal.subarray(22050).every(x=>x===0));
+});
+test('format 1 integrates tempo during the rest but uses only the chosen melody track end',()=>{
+  const fixture=Buffer.concat([hex('4d546864 00000006 0001 0003 01e0'),
+    track('00 ff 51 03 07 a1 20 83 60 ff 51 03 0f 42 40 87 40 ff 2f 00'),
+    track('00 90 45 64 81 70 80 45 00 85 50 ff 2f 00'),
+    track('00 90 48 64 84 58 80 48 00 87 40 ff 2f 00')]);
+  const s=scoreFromMidi(fixture,1,['먀']);
+  assert.equal(s.notes[0].duration,.25);
+  assert.equal(s.end,1.5);
+  assert.equal(scoreFromMidi(fixture,2,['용']).end,2.75);
+});
+test('an explicit selected MIDI end beyond five minutes is rejected',()=>{
+  const tooLong=Buffer.concat([one.subarray(0,14),track('00 90 45 64 83 60 80 45 00 92 a7 60 ff 2f 00')]);
+  assert.throws(()=>scoreFromMidi(tooLong,0,['먀']),/5분/);
 });

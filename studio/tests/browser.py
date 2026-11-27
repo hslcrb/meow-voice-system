@@ -143,6 +143,28 @@ with sync_playwright() as p, tempfile.TemporaryDirectory() as tmp:
             page.locator("#render").click()
             expect(page.locator("#status")).to_contain_text("2.25")
             print("375 px declared end adds 22050 silent samples without changing voiced samples")
+            page.locator("#midi-file").set_input_files({
+                "name": "끝 쉼표.mid", "mimeType": "audio/midi",
+                "buffer": bytes.fromhex(
+                    "4d546864 00000006 0000 0001 01e0 4d54726b 0000000e "
+                    "00 90 45 64 83 60 80 45 00 83 60 ff 2f 00",
+                ),
+            })
+            expect(page.locator("#midi-track option").first).to_contain_text("1개")
+            page.locator("#midi-lyrics").fill("먀")
+            page.locator("#midi-apply").click()
+            expect(end_control).to_have_value("1")
+            expect(page.locator("#notes .note input[name=duration]").first).to_have_value("0.5")
+            prior_href = page.locator("#mix-download").get_attribute("href")
+            page.locator("#render").click()
+            page.wait_for_function("(old) => document.querySelector('#mix-download').href !== old", arg=prior_href)
+            with page.expect_download() as midi_tail:
+                page.locator("#mix-download").click()
+            with wave.open(str(midi_tail.value.path())) as audio:
+                assert audio.getnframes() == 44100
+                assert any(audio.readframes(22050))
+                assert audio.readframes(22050) == bytes(44100)
+            print("375 px MIDI file end keeps 22050 silent samples")
         print(width, "px existing WAV SHA-256", hashlib.sha256(downloaded).hexdigest(),
               "MusicXML WAV SHA-256", hashlib.sha256(xml_download).hexdigest())
         assert not errors, errors
