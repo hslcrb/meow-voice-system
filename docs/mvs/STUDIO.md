@@ -60,7 +60,7 @@ node studio/cli.mjs provider-check "Daisy Bell"
 
 **음악만:** 요청한 보컬 WAV, 반주가 포함된 믹스 WAV 또는 둘 다 전달합니다. 화면 자료가 필요하지 않다면 만들지 않습니다.
 
-**무대 화면과 음악:** `show`로 같은 악보와 보컬 프리셋을 담은 재생용 독립 HTML을 생성합니다. MP4가 필요하면 선택 도구로 무대를 1280×720에 렌더합니다. Playwright의 Chromium과 FFmpeg가 필요하며, 원본 작업실 조작 화면 전체가 아닌 재생 무대와 가사 강조를 녹화합니다. 조작 화면 자체는 [데스크톱](assets/studio-desktop.webp)·[모바일](assets/studio-mobile.webp) 스틸처럼 별도로 캡처하세요.
+**무대 화면과 음악:** `show`로 같은 악보와 보컬 프리셋을 담은 재생용 독립 HTML을 생성합니다. MP4가 필요하면 선택 도구로 무대를 1280×720에 렌더합니다. Playwright의 Chromium과 FFmpeg가 필요하며, 원본 작업실 조작 화면 전체가 아닌 재생 무대와 가사 강조를 녹화합니다.
 
 ```sh
 python3 -m pip install playwright
@@ -69,6 +69,18 @@ python3 studio/film.py stage.html stage.mp4 --fps 24
 ```
 
 영상은 최대 30초입니다. 더 긴 악보는 `--seconds 15` 같은 미리보기 구간을 지정하세요. WAV와 HTML에는 그 제한이 없습니다(악보는 5분까지).
+
+**실제 작업실 화면과 음악:** 무대 대신 악보 입력과 보컬 설정, 렌더 결과와 플레이어가 있는 웹 작업실을 캡처합니다. JSON을 실제 파일 입력으로 불러오고 **목소리 만들기** 버튼을 누른 뒤, 작업실이 제공하는 믹스 WAV와 플레이어의 각 시각을 묶습니다. 원본 화면의 조작 상태를 보여 주는 재생 영상이지, 사람이 클릭하거나 입력하는 과정 전체를 기록하는 튜토리얼은 아닙니다.
+
+~~~sh
+python3 studio/capture.py studio/examples/meow.json studio.mp4 --width 1440 --height 1200 --fps 12
+python3 studio/capture.py 내-악보.json 내-작업실.mp4 --backing 내-반주.wav --seconds 12
+python3 studio/tests/capture.py
+~~~
+
+앞부분을 고르는 옵션은 30초 이하이며, 미지정 시 WAV 전체가 30초 이하여야 합니다. 너비 320–1920px, 높이 320–1200px의 **짝수**와 6–30fps를 지원합니다. 작은 화면에서는 실제 플레이어가 보이도록 이동하므로 편집부 일부는 화면 밖에 있을 수 있습니다. H.264 영상의 마지막 프레임은 한 프레임 미만으로 오디오보다 길 수 있고, AAC 오디오는 손실 압축입니다. 음원 보존이 필요하다면 WAV를 따로 전달하세요. 반주나 악보를 외부로 보내지 않고, 기존 MP4를 덮어쓰지 않습니다. 공개 전에는 영상 속 곡명·가사·파일명도 공개 가능한지 따로 확인하세요.
+
+[실제 작업실 영상의 2초 스틸](assets/studio-capture-desktop.webp) · [작업실 MP4 구현과 검증 기록](DEVLOG.md#밤샘-15-재생-무대가-아닌-실제-작업실을-mp4에)
 
 ## 외부 가사
 
