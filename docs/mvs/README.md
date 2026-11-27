@@ -20,10 +20,31 @@ MVS는 사람의 발성에서 영감을 얻어 새로운 가상 보컬을 설계
 
 발성기관에서 출발한 물리 모델링 연구를 현악·관악·건반·타악·전자악기로 확장하는 장기 구상을 제안한다. 악보와 연주 제어를 음원 계산에서 분리하고, 선택적 AI 작곡·편곡·지휘와 MVS 보컬을 결합해 팝부터 오케스트라까지 연구한다. [Virtual Instruments](VIRTUAL_INSTRUMENTS.md).
 
+## 한눈에 보는 MVS 연구 구조
+
+```mermaid
+flowchart TD
+ A["MVS · Meow Voice System"] --> B["FELIS · 고양이 발성"]
+ A --> C["HYBRID · 가상 생물 발성"]
+ A --> D["VOICE HOMAGE · 개인화 연구"]
+ B --> E["SING · 가창"]
+ C --> E
+ D --> E
+ A --> F["가상 악기 연구"]
+ E --> G["공통 악보와 타임라인"]
+ F --> G
+ G --> H["합창 · 팝 · 오케스트라"]
+ H --> I["믹싱 · 공간 음향 · 렌더"]
+ J["선택적 AI 작곡·편곡·지휘"] -.-> G
+```
+
+기획 전체의 개념도이며 현재 구현된 기능을 뜻하지 않는다.
+
 ## 문서 지도
 
 | 문서 | 내용 |
 |---|---|
+| [DIAGRAMS](DIAGRAMS.md) | 전체 연구 도식 아틀라스 |
 | [VISION](VISION.md) | 제품 목표, 기능 범위, 확장 구상 |
 | [BIOACOUSTICS](BIOACOUSTICS.md) | 고양이, 인간, 하이브리드 발성 물리 |
 | [VOICE_HOMAGE](VOICE_HOMAGE.md) | 인간 음성의 음향적 오마주, 개인화 연구 및 가상 보컬의 창작 |

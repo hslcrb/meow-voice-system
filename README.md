@@ -17,6 +17,26 @@ MVS는 인간의 발성에서 영감을 얻어 새로운 가상 보컬을 설계
 - **Status:** design stage; feline synthesis, hybrid singing, MR synchronization, personal voice research and virtual instruments/orchestra are proposed, not implemented.
 - GitHub Actions workflows have been removed from this independent derivative. Use local validation; upstream CI/install references below describe CHIMERA, not MVS releases.
 
+## MVS research architecture / 연구 개념도
+
+```mermaid
+flowchart TD
+ A["MVS · Meow Voice System"] --> B["FELIS · 고양이 발성"]
+ A --> C["HYBRID · 가상 생물 발성"]
+ A --> D["VOICE HOMAGE · 개인화 연구"]
+ B --> E["SING · 가창"]
+ C --> E
+ D --> E
+ A --> F["가상 악기 연구"]
+ E --> G["공통 악보와 타임라인"]
+ F --> G
+ G --> H["합창 · 팝 · 오케스트라"]
+ H --> I["믹싱 · 공간 음향 · 렌더"]
+ J["선택적 AI 작곡·편곡·지휘"] -.-> G
+```
+
+Conceptual research roadmap, not implemented features. [전체 도식 모음 / Diagram atlas](docs/mvs/DIAGRAMS.md).
+
 ---
 
 ## Upstream CHIMERA

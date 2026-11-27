@@ -81,6 +81,32 @@ MIDI 69 = A4 = 440 Hz. F0 = 440 * 2^((midi-69)/12). 시간은 정수 마이크�
 
 기존 `phonetics/sing.rs`의 SungNote, plan_song, melisma 계획 및 `control/singer.rs`의 라이브 제어를 재사용한다. `tools/musicxml-to-notes.ts`와 CLI `render notes`를 첫 렌더 경로로 삼되, MVS 포맷을 실제 기존 스키마로 변환하는 어댑터를 만든다. 임의 멜로디를 생성하는 기존 Sing 경로와 외부 정확한 악보 재현 모드를 구분한다.
 
+### 재생·정렬 시퀀스
+
+```mermaid
+sequenceDiagram
+ participant U as 사용자
+ participant P as 악보·가사 편집기
+ participant T as 공통 샘플 타임라인
+ participant V as 발성 엔진
+ participant M as MR 플레이어
+ participant X as 믹서
+ U->>P: 가사·MIDI·MR 불러오기
+ P->>P: 음절과 음표 정렬 및 검수
+ P->>T: 정규화된 스코어
+ U->>T: 재생
+ T->>M: 공통 시작 프레임에서 MR 예약
+ T->>V: 음표 및 선행 조음 예약
+ V->>X: 보컬 PCM
+ M->>X: 반주 PCM
+ X-->>U: 동기화된 음원
+ U->>T: 탐색 또는 정지
+ T->>V: 예약 취소·상태 재구축
+ T->>M: 반주 위치 갱신
+```
+
+스코어 및 MR 동기화의 제안된 실행 흐름. 실제 구현된 API나 지연 측정값은 아니다.
+
 ## 5. 반주 믹싱과 출력
 
 AudioContext.currentTime/정수 샘플 프레임을 기준으로 MR과 보컬을 동일한 시작점에서 예약한다. UI 시계나 setTimeout을 음표 발음 기준으로 사용하지 않는다. seek 시 기존 노트/이벤트를 취소하고 발성 상태를 재구축하며, 필요하면 앞 구간을 프리롤한다. pause/resume, 반복구간, 재시작 및 기기 샘플레이트 전환을 검증한다. 처리 지연/출력 지연을 구분하고 필요 시 보정 오프셋을 적용한다.
