@@ -72,6 +72,11 @@
           </div>
           <p id="lrc-hint">LRC는 가사와 시각만 보여 줍니다. 음정은 악보에 직접 입력해 주세요.</p>
           <ol id="lrc-preview" hidden></ol>
+          <div id="lrc-audit" class="lrc-audit" hidden>
+            <button type="button" class="button secondary" id="lrc-audit-run" aria-describedby="lrc-audit-hint">현재 악보와 시각 비교</button>
+            <p id="lrc-audit-hint">기본 120ms 범위로 음표 시작을 확인해요. 가사나 악보는 변경하지 않아요.</p>
+            <ol id="lrc-audit-results" aria-label="줄과 음표 시각 비교" hidden></ol>
+          </div>
           <fieldset class="midi">
             <legend>MIDI 선율 가져오기</legend>
             <label>선율 MIDI<span class="file-control"><input id="midi-file" type="file" accept=".mid,.midi,audio/midi"><span class="file-button" aria-hidden="true">파일 선택</span><span class="file-name" id="midi-file-name" aria-hidden="true">선택한 파일 없음</span></span></label>

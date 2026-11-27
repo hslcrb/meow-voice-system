@@ -11,3 +11,5 @@
 .midi legend,.midi label{font-size:.82rem;font-weight:800}.midi label{display:block;margin-bottom:6px}.midi label select,.midi textarea{margin-top:4px}
 .midi textarea{display:block;width:100%;resize:vertical;border:var(--line);border-radius:8px;padding:6px;font:inherit;color:var(--ink);background:var(--white)}
 .midi textarea:focus-visible{outline:3px solid #6234d2;outline-offset:3px}.midi button{margin-top:7px}
+
+.lrc-audit{margin-top:10px;padding-top:10px;border-top:1px dashed var(--ink)}.lrc-audit ol{max-height:180px;overflow:auto;padding-inline-start:1.5rem;margin:.5rem 0 0;font-size:.76rem}.lrc-audit li{margin:.3rem 0;overflow-wrap:anywhere}
