@@ -9,6 +9,7 @@ import sys
 import tempfile
 import unicodedata
 import wave
+from xml.etree import ElementTree as ET
 
 from playwright.sync_api import expect, sync_playwright
 
@@ -38,6 +39,13 @@ with sync_playwright() as p, tempfile.TemporaryDirectory() as tmp:
     subprocess.run(["node", studio / "cli.mjs", "render", xml_score, "--out", xml_wav],
                    check=True, capture_output=True)
     expected_xml = xml_wav.read_bytes()
+    tail_xml, tail_score = artifacts / "마지막 쉼표.musicxml", artifacts / "마지막 쉼표.json"
+    source_xml = ET.parse(studio / "examples/meow.musicxml")
+    last_measure = source_xml.findall("./part/measure")[-1]
+    last_measure.append(ET.fromstring("<note><rest/><duration>4</duration></note>"))
+    source_xml.write(tail_xml, encoding="utf-8", xml_declaration=True)
+    subprocess.run([sys.executable, studio / "musicxml.py", tail_xml,
+                    "--voice", "human", "--out", tail_score], check=True, capture_output=True)
     nfd_score = artifacts / "분해형 가사.json"
     nfd_data = json.loads(xml_score.read_text(encoding="utf-8"))
     for note in nfd_data["notes"]:
@@ -118,11 +126,7 @@ with sync_playwright() as p, tempfile.TemporaryDirectory() as tmp:
             print("375 px Hangul NFD WAV matches NFC; editor text is unchanged")
             end_control = page.get_by_role("spinbutton", name="악보 끝 시각 (초) 선택")
             expect(end_control).to_have_value("")
-            padded_score = {**nfd_data, "end": 2.75}
-            page.locator("#score-file").set_input_files({
-                "name": "마지막 쉼표.json", "mimeType": "application/json",
-                "buffer": json.dumps(padded_score, ensure_ascii=False).encode("utf-8"),
-            })
+            page.locator("#score-file").set_input_files(tail_score)
             expect(end_control).to_have_value("2.75")
             page.locator("#render").click()
             expect(page.locator("#status")).to_contain_text("2.75")

@@ -36,6 +36,7 @@ test('local MusicXML to valid JSON, rendered pitch and exact quiet intervals',()
     const score=JSON.parse(readFileSync(out));
     assert.equal(score.title,'밤의 먀용');
     assert.equal(score.voice,'human');
+    assert.equal(Object.hasOwn(score,'end'),false);
     assert.deepEqual(score.notes,[
       {start:.25,duration:1,midi:69,lyric:'먀'},
       {start:1.5,duration:.75,midi:61,lyric:'용'},
@@ -80,7 +81,6 @@ test('rejects ambiguous or unsupported rhythm, pitch and missing lyrics without 
     [attrs()+speed(120)+note('A',0,4,lyric('먀'),'<tie type="stop"/>'),/붙임줄/],
     [simple.replace('<note>','<note attack="1">'),/어택/],
     [simple+'<direction><direction-type><metronome/></direction-type></direction>',/템포/],
-    [simple+rest(4),/마지막 쉼표/],
   ];
   for (const [measure,error] of bad) run(wrap(bar(measure)),[],({r,out})=>{
     assert.equal(r.status,2,r.stderr); assert.match(r.stderr,error); assert.equal(existsSync(out),false);
@@ -95,5 +95,27 @@ test('rejects non-local XML expansion, ZIP input and files beyond the byte limit
   ];
   for(const [payload,error] of inputs) run(payload,[],({r,out})=>{
     assert.equal(r.status,2); assert.match(r.stderr,error); assert.equal(existsSync(out),false);
+  });
+});
+
+test('preserves final rests and tempo changes as a score end, never extra notes',()=>{
+  const xml=wrap(bar(simple+rest(2))+bar(attrs(8)+speed(60)+rest(4)));
+  run(xml,[],({r,out,dir})=>{
+    assert.equal(r.status,0,r.stderr);
+    const score=JSON.parse(readFileSync(out));
+    assert.equal(score.end,1.25);
+    assert.deepEqual(score.notes,[{start:0,duration:.5,midi:69,lyric:'먀'}]);
+    const wav=join(dir,'trailing.wav');
+    const rendered=spawnSync(process.execPath,['studio/cli.mjs','render',out,'--out',wav],{encoding:'utf8'});
+    assert.equal(rendered.status,0,rendered.stderr);
+    const {samples}=decodeWav(readFileSync(wav));
+    assert.equal(samples.length,55125);
+    assert.ok(samples.subarray(0,22050).some(x=>x!==0));
+    assert.ok(samples.subarray(22050).every(x=>x===0));
+  });
+  run(wrap(bar(simple+rest(2400))),[],({r,out})=>{
+    assert.equal(r.status,2);
+    assert.match(r.stderr,/5분/);
+    assert.equal(existsSync(out),false);
   });
 });
