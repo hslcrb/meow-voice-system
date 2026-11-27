@@ -1,4 +1,17 @@
-# CHIMERA
+# MVS — Meow Voice System 🐈
+
+**MVS is an experimental fork of [CHIMERA](https://github.com/jamesondh/chimera-vocal-synth).**
+
+고양이의 발성기관을 시뮬레이션하고, 인간과 고양이의 발성을 결합하며, 가사·음정·MR에 맞춰 가상의 보컬이 노래하도록 만드는 연구 구상입니다.
+
+- [MVS 기획 및 설계 문서 (한국어)](docs/mvs/README.md)
+- [생체음향](docs/mvs/BIOACOUSTICS.md) · [자동 가창](docs/mvs/SINGING.md) · [아키텍처](docs/mvs/ARCHITECTURE.md) · [로드맵](docs/mvs/ROADMAP.md)
+- **Status:** design stage; feline synthesis, hybrid singing and MR synchronization are proposed, not implemented.
+- GitHub Actions workflows have been removed from this fork. Use local validation; upstream CI/install references below describe CHIMERA, not MVS releases.
+
+---
+
+## Upstream CHIMERA
 
 A physical-modeling voice synthesizer in the browser. Every sound comes from a simulated
 airway (lungs, vocal folds or syrinx, a branched vocal tract, lips, nose), not from samples.
