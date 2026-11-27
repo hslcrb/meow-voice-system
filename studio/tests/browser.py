@@ -216,6 +216,45 @@ with sync_playwright() as p, tempfile.TemporaryDirectory() as tmp:
             voice_select.select_option("cat")
             expect(mode).to_be_hidden()
             print("375 px selected nasal mode matches the explicit CLI score")
+            editable = {
+                "version": 1, "title": "밤: 왈/먀", "voice": "human", "sampleRate": 16000,
+                "articulation": "nasal", "end": 0.75,
+                "notes": [{"start": 0.12, "duration": 0.5, "midi": 57,
+                           "velocity": 0.63, "lyric": unicodedata.normalize("NFD", "양")}],
+            }
+            page.locator("#score-file").set_input_files({
+                "name": "작업중.json", "mimeType": "application/json",
+                "buffer": json.dumps(editable, ensure_ascii=False).encode("utf-8"),
+            })
+            expect(page.locator("#title")).to_have_value("밤: 왈/먀")
+            save = page.get_by_role("button", name="악보 JSON 저장")
+            expect(save).to_be_visible(timeout=1500)
+            first_start = page.locator("input[name=start]").first
+            first_start.fill("0.123456")
+            editable["notes"][0]["start"] = 0.123456
+            with page.expect_download() as score_download:
+                save.click()
+            assert score_download.value.suggested_filename == "밤_ 왈_먀-악보.json"
+            saved_file = artifacts / "왕복.json"
+            saved_file.write_bytes(score_download.value.path().read_bytes())
+            assert json.loads(saved_file.read_text(encoding="utf-8")) == {**editable, "call": "meow"}
+            saved_wav = artifacts / "왕복.wav"
+            subprocess.run(["node", studio / "cli.mjs", "render", saved_file, "--out", saved_wav],
+                           check=True, capture_output=True)
+            page.locator("#example").click()
+            expect(page.locator("#notes .note")).to_have_count(5)
+            page.locator("#score-file").set_input_files(saved_file)
+            expect(first_start).to_have_value("0.123456")
+            expect(page.locator("input[name=lyric]").first).to_have_value(editable["notes"][0]["lyric"])
+            page.locator("#render").click()
+            expect(page.locator("#status")).to_contain_text("0.75")
+            with page.expect_download() as returned:
+                page.locator("#mix-download").click()
+            assert returned.value.path().read_bytes() == saved_wav.read_bytes()
+            page.locator("#score-end").fill("0.1")
+            save.click()
+            expect(page.locator("#status")).to_contain_text("마지막 음표")
+            print("375 px edited score download and reimport retain exact validation fields and CLI WAV")
         print(width, "px existing WAV SHA-256", hashlib.sha256(downloaded).hexdigest(),
               "MusicXML WAV SHA-256", hashlib.sha256(xml_download).hexdigest())
         assert not errors, errors

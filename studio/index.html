@@ -62,7 +62,10 @@
           <div class="timeline-title"><strong>음표 목록</strong><span id="note-count">0개</span></div>
           <div class="note-head" aria-hidden="true"><span>시작 (초)</span><span>길이 (초)</span><span>음정 (MIDI)</span><span>가사</span><span></span></div>
           <div id="notes"></div>
-          <button type="button" class="button add" id="add-note">＋ 음표 추가</button>
+          <div class="score-actions">
+            <button type="button" class="button add" id="add-note">＋ 음표 추가</button>
+            <button type="button" class="button secondary" id="save-score">악보 JSON 저장</button>
+          </div>
         </div>
         <details class="imports">
           <summary>파일에서 가져오기 <span>JSON · LRC · MIDI</span></summary>
