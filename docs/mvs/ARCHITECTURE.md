@@ -5,6 +5,7 @@
 ~~~mermaid
 flowchart TB
  UI[React / Vite UI] --> TL[신규 MVS 타임라인 및 프리셋]
+ VH[신규 Voice Homage 로컬 연구] --> TL
  TL --> G[기존 음소 및 가창 계획기]
  TL --> MR[Web Audio MR 재생]
  G --> ABI[WASM ABI / AudioWorklet]
@@ -50,6 +51,7 @@ flowchart TB
 - Rust: cat.rs, feline_hybrid.rs, 프로젝트 score/timeline 변환 계층. 핵심 엔진은 I/O 없는 DSP로 유지한다.
 - TypeScript: src/mvs/project.ts, importers/, timeline.ts, mixer.ts, preset.ts, src/ui/mvs/ 등. 실제 파일 배치는 구현 시 결정한다.
 - CLI: 기존 render notes 경로의 어댑터부터 시작한다. 향후 MVS 프로젝트 전체 렌더 명령을 명시적으로 추가한다.
+- Voice Homage 연구: 오디오 콜백 외부의 로컬 음향 관찰 및 프리셋 설계 계층. 엔진에는 검증된 제어값만 전달하며 원본 개인 녹음 및 프리셋의 공개는 기본 비활성화한다. [연구 범위](VOICE_HOMAGE.md).
 - IRIS 연동: 선택적 요청 객체 {text, language, voicePreset, emotion, prosody} 및 렌더/취소/진행 이벤트. 네트워크 없이도 동작하는 기본 경로를 유지한다.
 
 ## 3. 실시간 계약

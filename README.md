@@ -4,9 +4,12 @@
 
 고양이의 발성기관을 시뮬레이션하고, 인간과 고양이의 발성을 결합하며, 가사·음정·MR에 맞춰 가상의 보컬이 노래하도록 만드는 연구 구상입니다.
 
+MVS는 인간의 발성에서 영감을 얻어 새로운 가상 보컬을 설계하는 가창 합성 연구도 지향합니다. 본인 또는 동의한 참여자의 음향 연구, 물리 모델링, 독립적 음악 창작을 결합합니다.
+
 - [MVS 기획 및 설계 문서 (한국어)](docs/mvs/README.md)
 - [생체음향](docs/mvs/BIOACOUSTICS.md) · [자동 가창](docs/mvs/SINGING.md) · [아키텍처](docs/mvs/ARCHITECTURE.md) · [로드맵](docs/mvs/ROADMAP.md)
-- **Status:** design stage; feline synthesis, hybrid singing and MR synchronization are proposed, not implemented.
+- [Voice Homage — 새로운 가상 보컬의 지평](docs/mvs/VOICE_HOMAGE.md)
+- **Status:** design stage; feline synthesis, hybrid singing, MR synchronization and personal voice research are proposed, not implemented.
 - GitHub Actions workflows have been removed from this fork. Use local validation; upstream CI/install references below describe CHIMERA, not MVS releases.
 
 ---
