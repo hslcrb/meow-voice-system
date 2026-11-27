@@ -4,7 +4,7 @@
 
 - 기획일: 2026-11-27 (KST)
 - 소속 구상: IRIS / 생체음향 연구
-- 상태: **설계 제안**. 고양이 모델, 인간-고양이 혼합, MR 자동 가창 및 개인화 음향 연구는 아직 구현되지 않았다.
+- 상태: **설계 제안**. 고양이 모델, 인간-고양이 혼합, MR 자동 가창 및 개인화 음향 연구, 가상 악기·오케스트라 연구 기능은 아직 구현되지 않았다.
 
 ## 출발점
 
@@ -16,6 +16,10 @@ CHIMERA의 물리 기반 발성 엔진을 보다가 생긴 질문: 고양이의 
 
 MVS는 사람의 발성에서 영감을 얻어 새로운 가상 보컬을 설계하는 Voice Homage 연구도 제안한다. 본인 또는 명시적으로 동의한 참여자의 음향 특성을 연구하고, 물리 발성 모델과 음악 표현 제어를 결합한다. 실존 인물의 정체성을 가장하는 것이 아니라 독립적 창작과 음악 기술 연구를 목표로 한다.
 
+## 음악이 태어나는 가상 세계
+
+발성기관에서 출발한 물리 모델링 연구를 현악·관악·건반·타악·전자악기로 확장하는 장기 구상을 제안한다. 악보와 연주 제어를 음원 계산에서 분리하고, 선택적 AI 작곡·편곡·지휘와 MVS 보컬을 결합해 팝부터 오케스트라까지 연구한다. [Virtual Instruments](VIRTUAL_INSTRUMENTS.md).
+
 ## 문서 지도
 
 | 문서 | 내용 |
@@ -24,11 +28,13 @@ MVS는 사람의 발성에서 영감을 얻어 새로운 가상 보컬을 설계
 | [BIOACOUSTICS](BIOACOUSTICS.md) | 고양이, 인간, 하이브리드 발성 물리 |
 | [VOICE_HOMAGE](VOICE_HOMAGE.md) | 인간 음성의 음향적 오마주, 개인화 연구 및 가상 보컬의 창작 |
 | [SINGING](SINGING.md) | 가사·시간·음정·MR, 자동 가창 및 데이터 계약 |
+| [VIRTUAL_INSTRUMENTS](VIRTUAL_INSTRUMENTS.md) | 가상 악기, 팝 밴드, 오케스트라 및 공간 음향 |
+| [PROVENANCE](PROVENANCE.md) | 포크 네트워크 분리, 원본 저작권과 독립 연구 계보 |
 | [ARCHITECTURE](ARCHITECTURE.md) | Rust/WASM, 코드 연결 지점, 실시간 처리, UI |
 | [ROADMAP](ROADMAP.md) | 개발 순서, 검증, 운영, 위험 및 결정 사항 |
 
 ## 계보
 
-원본: [jamesondh/chimera-vocal-synth](https://github.com/jamesondh/chimera-vocal-synth) (MIT). 기존 [LICENSE](../../LICENSE), 제3자 라이선스 및 원본 문서를 보존한다. [기존 음향 설계](../architecture.md), [Rust 엔진 계약](../rust-engine.md), [언어 프런트엔드](../language-front-ends.md), [3D 리그](../rig.md)는 MVS의 기술 기반이다. 이름 변경은 신규 기능 구현을 의미하지 않는다.
+원본: [jamesondh/chimera-vocal-synth](https://github.com/jamesondh/chimera-vocal-synth) (MIT). MVS는 GitHub 포크 네트워크에서 분리된 독립 파생 저장소다. [출처와 분리 이력](PROVENANCE.md)을 명시한다. 기존 [LICENSE](../../LICENSE), 제3자 라이선스 및 원본 문서를 보존한다. [기존 음향 설계](../architecture.md), [Rust 엔진 계약](../rust-engine.md), [언어 프런트엔드](../language-front-ends.md), [3D 리그](../rig.md)는 MVS의 기술 기반이다. 이름 변경은 신규 기능 구현을 의미하지 않는다.
 
 MVS의 재미는 가상의 생물을 만들고, 그 생물에게 목소리를 주고, 마침내 음악을 주는 데 있다.

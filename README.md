@@ -1,16 +1,21 @@
 # MVS — Meow Voice System 🐈
 
-**MVS is an experimental fork of [CHIMERA](https://github.com/jamesondh/chimera-vocal-synth).**
+**MVS is an independent experimental derivative of [CHIMERA](https://github.com/jamesondh/chimera-vocal-synth) by Jameson Hodge, detached from the GitHub fork network.**
+
+원본 CHIMERA를 포크한 뒤 GitHub 포크 네트워크를 떠나 독립 저장소로 운영하는 파생 연구 프로젝트입니다. 원본 MIT 라이선스와 저작권 표기를 유지합니다. [출처 및 계보 / Provenance](docs/mvs/PROVENANCE.md).
 
 고양이의 발성기관을 시뮬레이션하고, 인간과 고양이의 발성을 결합하며, 가사·음정·MR에 맞춰 가상의 보컬이 노래하도록 만드는 연구 구상입니다.
 
 MVS는 인간의 발성에서 영감을 얻어 새로운 가상 보컬을 설계하는 가창 합성 연구도 지향합니다. 본인 또는 동의한 참여자의 음향 연구, 물리 모델링, 독립적 음악 창작을 결합합니다.
 
+장기적으로는 물리 모델링 기반 가상 악기와 오케스트라를 구축하여 클래식부터 팝까지 연주하는 환경을 연구합니다. AI는 선택적으로 작곡·편곡·지휘를 보조하고, 실제 음원은 가상 악기와 발성 모델에서 합성하는 방식입니다.
+
 - [MVS 기획 및 설계 문서 (한국어)](docs/mvs/README.md)
 - [생체음향](docs/mvs/BIOACOUSTICS.md) · [자동 가창](docs/mvs/SINGING.md) · [아키텍처](docs/mvs/ARCHITECTURE.md) · [로드맵](docs/mvs/ROADMAP.md)
 - [Voice Homage — 새로운 가상 보컬의 지평](docs/mvs/VOICE_HOMAGE.md)
-- **Status:** design stage; feline synthesis, hybrid singing, MR synchronization and personal voice research are proposed, not implemented.
-- GitHub Actions workflows have been removed from this fork. Use local validation; upstream CI/install references below describe CHIMERA, not MVS releases.
+- [Virtual Instruments — 가상 악기와 오케스트라](docs/mvs/VIRTUAL_INSTRUMENTS.md)
+- **Status:** design stage; feline synthesis, hybrid singing, MR synchronization, personal voice research and virtual instruments/orchestra are proposed, not implemented.
+- GitHub Actions workflows have been removed from this independent derivative. Use local validation; upstream CI/install references below describe CHIMERA, not MVS releases.
 
 ---
 

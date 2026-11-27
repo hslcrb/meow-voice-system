@@ -12,8 +12,11 @@
 | P5 | 정밀화 | 참고 보컬 F0/음소 자동 추출, 멜리스마/호흡/표현 제어 |
 | P5-V | Voice Homage 연구 트랙 | 자체 합성/권한 있는 본인 음성 분석, 독립 프리셋 실험, 참여자 권리 및 합성 표시 검증 |
 | P6 | 확장 | 3D, IRIS 선택적 연동, 듀엣, 합창, 다른 종의 연구 |
+| P7-I | 가상 악기 연구 트랙 | 공통 스코어, 최소 물리 악기 PoC, 소규모 합주, 오케스트라 및 공간 음향을 단계적으로 검증 |
 
 P1은 물리적 고양이 모델이 완성되기 전에도 음악 데이터 및 동기화가 올바른지 검증하기 위해 먼저 수행한다. P2/P3은 독립적으로 연구할 수 있다. P5-V는 별도 연구 트랙으로, [Voice Homage](VOICE_HOMAGE.md)의 범위와 검증 기준을 따른다.
+
+P7-I는 기존 MVS 발성 연구를 유지하면서 독립적으로 진행할 수 있는 장기 구상이다. 세부 I0–I5 단계는 [가상 악기 로드맵](VIRTUAL_INSTRUMENTS.md#8-연구-로드맵)을 따른다.
 
 ## 검증 계획
 
@@ -29,13 +32,14 @@ P1은 물리적 고양이 모델이 완성되기 전에도 음악 데이터 및 
 | 한국어 | 받침·연음·자음군·멜리스마, 화자 평가 및 오류 유형별 기록 |
 | 실시간 | AudioWorklet underrun, callback 시간/할당, 기기별 CPU/메모리 |
 | 개인화 보컬 | 발음·음정·음색 제어, 독창성, 오인 가능성 및 동의/삭제/공개 설정 검증 |
+| 가상 악기/합주 | 음정·공명·감쇠, 아티큘레이션, 트랙 동기화, CPU 및 공간 음향 검증 |
 | 출력 | WAV 프레임 수, 피크/클리핑, stem과 mix의 재합성 비교, 동일 입력 재현성 |
 
 자동 평가는 발성 자연스러움을 완전히 설명하지 못한다. 고양이 유사성 및 사람의 언어 명료도를 별도의 블라인드 청취 항목으로 비교하고, 객관 지표와 주관 평가를 함께 기록한다.
 
 ## 운영: GitHub Actions 사용 금지
 
-상속된 GitHub Actions workflow와 복사본 세 개를 제거했다. .github/workflows/checks.yml, .github/workflows/plugin.yml, crates/chimera-plugin/plugin.yml. 신규 workflow를 추가하지 않는다. 기존 Git history는 보존한다. tools/tsp/mfa.yaml은 Montreal Forced Aligner가 사용하는 실제 연구 설정이며 자동화 workflow가 아니므로 유지한다. 기존 플러그인 문서의 CI 빌드/릴리스 언급은 원본의 역사적 안내로 남아 있고 이 포크에서는 해당 Actions가 실행되지 않는다. 기존 upstream 설치 URL은 MVS 배포본이 아니다.
+상속된 GitHub Actions workflow와 복사본 세 개를 제거했다. .github/workflows/checks.yml, .github/workflows/plugin.yml, crates/chimera-plugin/plugin.yml. 신규 workflow를 추가하지 않는다. 기존 Git history는 보존한다. tools/tsp/mfa.yaml은 Montreal Forced Aligner가 사용하는 실제 연구 설정이며 자동화 workflow가 아니므로 유지한다. 기존 플러그인 문서의 CI 빌드/릴리스 언급은 원본의 역사적 안내로 남아 있고 이 독립 파생 저장소에서는 해당 Actions가 실행되지 않는다. 기존 upstream 설치 URL은 MVS 배포본이 아니다.
 
 로컬 검증 후보:
 
