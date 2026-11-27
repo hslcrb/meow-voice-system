@@ -74,7 +74,7 @@ python3 studio/film.py stage.html stage.mp4 --fps 24
 
 [프로젝트 문서 지도](README.md) · [작업실 에이전트 지침](../../.agents/skills/mvs-studio/SKILL.md)
 
-## MIDI 음정 + 가사 목록 넣기 (CLI)
+## MIDI 음정 + 가사 목록 넣기
 
 [표준 MIDI 파일](https://midi.org/standard-midi-files) 형식 0·1과 PPQ를 지원합니다. 음정이 있는 **단선율 트랙 하나**를 고르고, 자기 가사를 음표당 문자열 하나인 JSON 배열로 저장하세요. 예: `["먀","용"]`. 0번은 첫 트랙입니다. 템포 트랙만 있는 경우에는 그 뒤를 선택합니다.
 
@@ -84,4 +84,4 @@ node studio/cli.mjs midi-import melody.mid --track 1 --lyrics syllables.json --o
 node studio/cli.mjs render score.json --out meow.wav
 ```
 
-가사 개수가 다르거나 화음이 겹치면 임의로 단순화하지 않고 중단합니다. MIDI의 시간·정수 음높이·세기를 읽으며, 페달·피치벤드·가사 내장 메타 이벤트는 재현하지 않습니다. 브라우저에서는 생성된 `score.json`을 열 수 있습니다. MIDI 자체의 브라우저 가져오기와 MusicXML은 아직 지원하지 않습니다.
+가사 개수가 다르거나 화음이 겹치면 임의로 단순화하지 않고 중단합니다. MIDI의 시간·정수 음높이·세기를 읽으며, 페달·피치벤드·가사 내장 메타 이벤트는 재현하지 않습니다. 브라우저에서도 **파일에서 가져오기 → MIDI 선율 가져오기**로 파일을 열고 트랙을 고를 수 있습니다. 음표마다 가사를 한 줄씩 입력한 뒤 적용하세요. 개수가 틀리면 기존 악보를 보존하며 파일은 브라우저 밖으로 전송하지 않습니다. MusicXML은 아직 지원하지 않습니다.

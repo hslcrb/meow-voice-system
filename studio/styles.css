@@ -6,3 +6,8 @@
 @media(max-width:450px){.hero{grid-template-columns:1fr;min-height:0}.hero-art{min-height:170px;border-left:0;border-top:var(--line)}.cat{width:185px}.hero-copy{padding:18px 18px 20px}.hero h1{font-size:3.6rem}.hero-copy>p:not(.kicker){font-size:.85rem}.sticker{right:8%;top:8%}.mast{height:53px;gap:9px}.mast-label{padding-left:9px}.mast-private{font-size:.68rem}.note-head,.note{grid-template-columns:.76fr .76fr .88fr 1.02fr 27px;gap:4px}.note input{padding:5px 3px}.note-head{font-size:.64rem}.imports summary span{display:none}.import-grid{grid-template-columns:1fr}.foot{padding:0 15px}}
 @media(prefers-reduced-motion:reduce){.button{transition:none}}
 .file-control{position:relative;display:flex;align-items:center;gap:8px;min-width:0;min-height:41px;border:var(--line);border-radius:9px;padding:5px 8px;margin-top:5px;background:var(--white);font-size:.75rem}.file-control input[type=file]{opacity:0;cursor:pointer;position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0}.file-control:focus-within{outline:3px solid #6234d2;outline-offset:4px}.file-button{background:var(--purple);border:1px solid var(--ink);border-radius:6px;padding:2px 7px;white-space:nowrap}.file-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.midi{min-inline-size:0;margin:12px 0 0;padding:9px 10px 10px;border:var(--line);border-radius:9px}
+.midi legend,.midi label{font-size:.82rem;font-weight:800}.midi label{display:block;margin-bottom:6px}.midi label select,.midi textarea{margin-top:4px}
+.midi textarea{display:block;width:100%;resize:vertical;border:var(--line);border-radius:8px;padding:6px;font:inherit;color:var(--ink);background:var(--white)}
+.midi textarea:focus-visible{outline:3px solid #6234d2;outline-offset:3px}.midi button{margin-top:7px}

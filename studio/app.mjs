@@ -1,4 +1,5 @@
 import { validateScore, encodeWav, decodeWav, parseLrc } from './core.mjs';
+import {parseMidi,scoreFromMidi} from './midi.mjs';
 
 const $ = id => document.getElementById(id);
 const fields = [
@@ -103,7 +104,7 @@ function localFile(id, limit) {
   return file;
 }
 
-for (const id of ['score-file', 'lyric-file', 'backing-file']) {
+for (const id of ['score-file', 'lyric-file', 'backing-file', 'midi-file']) {
   $(id).addEventListener('change', () => {
     $(`${id}-name`).textContent = $(id).files[0]?.name ?? '선택한 파일 없음';
   });
@@ -145,6 +146,49 @@ $('lyric-file').addEventListener('change', async () => {
     $('lrc-preview').hidden = !lines.length;
     announce(lines.length ? `LRC ${lines.length}줄을 읽었어요. 최대 100줄을 보여 줍니다.` : '시각 표시가 있는 가사를 찾지 못했어요.', !lines.length);
   } catch (error) { announce(`LRC를 불러오지 못했어요. ${error.message}`, true); }
+});
+
+let midiBytes;
+let midiRevision=0;
+$('midi-file').addEventListener('change',async()=>{
+  const revision=++midiRevision;
+  midiBytes=undefined;
+  $('midi-editor').hidden=true;
+  $('midi-track').replaceChildren();
+  $('midi-lyrics').value='';
+  try {
+    const file=localFile('midi-file',2_000_000);
+    if(!file)return;
+    const bytes=new Uint8Array(await file.arrayBuffer());
+    if(revision!==midiRevision)return;
+    const {tracks}=parseMidi(bytes);
+    for(const [number,track] of tracks.entries()) {
+      if(!track.notes.length)continue;
+      const option=document.createElement('option');
+      option.value=String(number);
+      option.textContent=`트랙 ${number} · ${track.notes.length}개 음표`;
+      $('midi-track').append(option);
+    }
+    if(!$('midi-track').length)throw Error('음표가 들어 있는 트랙을 찾지 못했어요.');
+    midiBytes=bytes;
+    $('midi-editor').hidden=false;
+    announce('선율을 읽었어요. 트랙과 가사를 확인한 뒤 적용하세요.');
+  } catch(error) {
+    if(revision===midiRevision)announce(error.message,true);
+  }
+});
+$('midi-apply').addEventListener('click',()=>{
+  if(!midiBytes)return;
+  try {
+    const lyrics=$('midi-lyrics').value.trim().split(/\r?\n/);
+    const voice=$('voice').value;
+    showScore(scoreFromMidi(midiBytes,Number($('midi-track').value),lyrics,{
+      title:$('title').value,voice,sampleRate:current.sampleRate,call:voice==='cat'?$('call').value:'meow',
+    }));
+    initialized=true;
+    discardUrls();
+    announce('선율과 가사를 현재 악보에 넣었어요.');
+  } catch(error){announce(error.message,true);}
 });
 
 function discardUrls() {

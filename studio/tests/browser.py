@@ -23,6 +23,11 @@ with sync_playwright() as p, tempfile.TemporaryDirectory() as tmp:
         w.writeframes((3200).to_bytes(2, "little", signed=True) * 64000)
     lrc = artifacts / "예제.lrc"
     lrc.write_text("[00:00.15]먀\n[00:00.66]용", encoding="utf-8")
+    midi = artifacts / "선율.mid"
+    midi.write_bytes(bytes.fromhex(
+        "4d546864 00000006 0000 0001 01e0 4d54726b 00000015 "
+        "00 90 45 64 83 60 45 00 81 70 48 7f 83 60 80 48 00 00 ff 2f 00"
+    ))
     for width in [1440, 768, 375, 320]:
         page = browser.new_page(viewport={"width": width, "height": 1000}, accept_downloads=True)
         errors, http_errors = [], []
@@ -55,6 +60,24 @@ with sync_playwright() as p, tempfile.TemporaryDirectory() as tmp:
         with wave.open(io.BytesIO(downloaded)) as audio:
             assert (audio.getframerate(), audio.getnframes(), audio.getnchannels()) == (44100, 176400, 1)
             assert int.from_bytes(audio.readframes(1), "little", signed=True) > 0
+        page.locator("#midi-file").set_input_files(midi)
+        page.wait_for_function("document.querySelector('#midi-track').length === 1")
+        page.locator("#midi-lyrics").fill("먀")
+        page.locator("#midi-apply").click()
+        assert "개수" in page.locator("#status").inner_text()
+        assert page.locator("#notes .note").count() == 5
+        page.locator("#midi-lyrics").fill("먀\n용")
+        page.locator("#midi-apply").click()
+        assert page.locator("#notes .note").count() == 2
+        assert page.locator('#notes .note input[name="midi"]').last.input_value() == "72"
+        assert page.locator('#notes .note input[name="start"]').last.input_value() == "0.75"
+        page.locator("#backing-file").set_input_files([])
+        page.locator("#render").click()
+        page.wait_for_function("document.querySelector('#status').textContent.includes('1.25')")
+        with page.expect_download() as midi_wav:
+            page.locator("#mix-download").click()
+        with wave.open(str(midi_wav.value.path())) as audio:
+            assert (audio.getframerate(), audio.getnframes()) == (44100, 55125)
         print(width, "px WAV sha256", hashlib.sha256(downloaded).hexdigest())
         assert not errors, errors
         assert not http_errors, http_errors
