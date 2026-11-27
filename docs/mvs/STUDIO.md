@@ -73,3 +73,15 @@ python3 studio/film.py stage.html stage.mp4 --fps 24
 `provider-check`는 LRCLIB 공개 메타데이터 응답의 연결과 곡 식별을 점검합니다. 가사 본문은 반환하지 않습니다. `lrc`는 직접 받은 파일의 시간표를 읽을 뿐 음절별 정렬·MIDI를 생성하지 않습니다. 제공처의 메타데이터 조회, 가사 본문 이용, 파일 재배포는 다릅니다. 공식 API와 계약 범위를 확인한 경로만 사용하고, 그 사실만으로 상업곡을 예제에 넣지는 않습니다. 권한이 없거나 제공처 연결이 검증되지 않았으면 사용자 제공 TXT·악보를 로컬에서 유지합니다. [제공처별 확인 결과](LYRICS_PROVIDERS.md)를 참고하세요.
 
 [프로젝트 문서 지도](README.md) · [작업실 에이전트 지침](../../.agents/skills/mvs-studio/SKILL.md)
+
+## MIDI 음정 + 가사 목록 넣기 (CLI)
+
+[표준 MIDI 파일](https://midi.org/standard-midi-files) 형식 0·1과 PPQ를 지원합니다. 음정이 있는 **단선율 트랙 하나**를 고르고, 자기 가사를 음표당 문자열 하나인 JSON 배열로 저장하세요. 예: `["먀","용"]`. 0번은 첫 트랙입니다. 템포 트랙만 있는 경우에는 그 뒤를 선택합니다.
+
+```sh
+node studio/cli.mjs midi-list melody.mid
+node studio/cli.mjs midi-import melody.mid --track 1 --lyrics syllables.json --out score.json
+node studio/cli.mjs render score.json --out meow.wav
+```
+
+가사 개수가 다르거나 화음이 겹치면 임의로 단순화하지 않고 중단합니다. MIDI의 시간·정수 음높이·세기를 읽으며, 페달·피치벤드·가사 내장 메타 이벤트는 재현하지 않습니다. 브라우저에서는 생성된 `score.json`을 열 수 있습니다. MIDI 자체의 브라우저 가져오기와 MusicXML은 아직 지원하지 않습니다.
