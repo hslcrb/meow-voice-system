@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "title": "우리 집 고양이 데뷔 무대",
+  "voice": "hybrid",
+  "sampleRate": 44100,
+  "notes": [
+    { "start": 0.15, "duration": 0.48, "midi": 67, "lyric": "먀" },
+    { "start": 0.66, "duration": 0.55, "midi": 69, "lyric": "용" },
+    { "start": 1.28, "duration": 0.41, "midi": 72, "lyric": "별" },
+    { "start": 1.73, "duration": 0.54, "midi": 74, "lyric": "빛" },
+    { "start": 2.36, "duration": 0.84, "midi": 72, "lyric": "냥" }
+  ]
+}

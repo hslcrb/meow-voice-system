@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ff75bc">
+  <title>먀용 보컬실 ✶ MVS</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="skip" href="#score">악보 편집으로 건너뛰기</a>
+  <header class="mast">
+    <a class="wordmark" href="./">MVS<span>✶</span></a>
+    <span class="mast-label">먀용 보컬실</span>
+    <span class="mast-private"><span></span> 기기에서만 작업</span>
+  </header>
+  <main class="shell">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="kicker"><span>00</span> 가상 보컬 실험실</p>
+        <h1 id="hero-title">먀용의<br>첫 녹음실<span>!</span></h1>
+        <p>음정은 정확하게, 목소리는 네 맘대로.<br>가사와 악보를 넣고, 세상에 하나뿐인 먀용을 뽑아 봐.</p>
+        <a class="hero-link" href="#score">악보 열기 <span aria-hidden="true">↘</span></a>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 360 268" class="cat" role="presentation">
+          <path d="M50 145C54 112 74 92 95 81L89 31 145 60C169 55 193 55 218 60L273 31 266 84C291 101 309 125 311 148C318 195 273 229 181 229 96 229 46 196 50 145Z" fill="#24163f" transform="translate(6 8)"/>
+          <path d="M50 145C54 112 74 92 95 81L89 31 145 60C169 55 193 55 218 60L273 31 266 84C291 101 309 125 311 148C318 195 273 229 181 229 96 229 46 196 50 145Z" fill="#fff0d6" stroke="#24163f" stroke-width="6" stroke-linejoin="round"/>
+          <path d="M101 48 126 64 106 74ZM263 48 238 64 259 74Z" fill="#ff77ad" stroke="#24163f" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M69 119 151 106 172 124 190 123 208 104 291 112 285 159 272 175 212 168 187 142 172 142 149 171 89 176 75 159Z" fill="#23163d" stroke="#23163d" stroke-width="7" stroke-linejoin="round"/>
+          <path d="M90 127 139 119 120 153 101 161ZM212 118 261 122 234 151 219 152Z" fill="#ed79bc"/>
+          <path d="M109 128 119 132 132 128 131 143 137 152 124 152 115 161 113 147 101 140Z" fill="#f9dc46"/>
+          <path d="M239 126 249 131 261 128 260 142 266 151 254 152 244 161 242 147 231 141Z" fill="#f9dc46"/>
+          <path d="M170 173Q180 166 190 173L180 182Z" fill="#fb69aa" stroke="#24163f" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M180 181V189M180 189Q172 199 164 191M180 189Q189 199 197 190" fill="none" stroke="#24163f" stroke-width="4" stroke-linecap="round"/>
+          <path d="M64 177 31 168M65 189 30 191M295 174 329 164M295 186 331 189" stroke="#24163f" stroke-width="4" stroke-linecap="round"/>
+          <path d="M28 41 33 56 49 60 34 65 29 79 24 65 10 61 24 56ZM316 32 321 44 334 49 321 53 316 67 312 53 298 49 312 44Z" fill="#fff4c9" stroke="#24163f" stroke-width="3"/>
+          <circle cx="304" cy="211" r="23" fill="#f9dc46" stroke="#24163f" stroke-width="4"/>
+          <path d="M294 211 301 218 315 203" fill="none" stroke="#24163f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="sticker">목소리<br>쫌 치네?</span>
+      </div>
+    </section>
+    <div class="workspace">
+      <section class="panel score" id="score" aria-labelledby="score-title">
+        <header class="panel-head">
+          <div><p class="kicker"><span>01</span> 악보 편집</p><h2 id="score-title">오늘 뭐 부를까?</h2></div>
+          <button type="button" class="button secondary" id="example">예제 불러오기</button>
+        </header>
+        <div class="controls">
+          <label>곡 제목<input id="title" type="text" placeholder="제목을 입력해 줘"></label>
+          <label>가수 선택<select id="voice">
+            <option value="cat">고양이 · 먀용</option>
+            <option value="human">사람 · 모음 실험</option>
+            <option value="hybrid">혼합 · 반반 무대</option>
+          </select></label>
+          <label id="cat-call">고양이 호출<select id="call"><option value="meow">먀용 · 음정 발성</option><option value="purr">골골송 · 24 Hz 질감</option><option value="hiss">하악질 · 무성 잡음</option><option value="growl">그르릉 · 거친 소리</option><option value="chirp">트릴 · 짧은 떨림</option></select></label>
+        </div>
+        <div class="timeline">
+          <div class="timeline-title"><strong>음표 목록</strong><span id="note-count">0개</span></div>
+          <div class="note-head" aria-hidden="true"><span>시작 (초)</span><span>길이 (초)</span><span>음정 (MIDI)</span><span>가사</span><span></span></div>
+          <div id="notes"></div>
+          <button type="button" class="button add" id="add-note">＋ 음표 추가</button>
+        </div>
+        <details class="imports">
+          <summary>파일에서 가져오기 <span>JSON · LRC · WAV</span></summary>
+          <div class="import-grid">
+            <label>악보 JSON<span class="file-control"><input id="score-file" type="file" accept=".json,application/json"><span class="file-button" aria-hidden="true">파일 선택</span><span class="file-name" id="score-file-name" aria-hidden="true">선택한 파일 없음</span></span></label>
+            <label>가사 LRC 미리보기<span class="file-control"><input id="lyric-file" type="file" accept=".lrc,text/plain"><span class="file-button" aria-hidden="true">파일 선택</span><span class="file-name" id="lyric-file-name" aria-hidden="true">선택한 파일 없음</span></span></label>
+          </div>
+          <p id="lrc-hint">LRC는 가사와 시각만 보여 줍니다. 음정은 악보에 직접 입력해 주세요.</p>
+          <ol id="lrc-preview" hidden></ol>
+        </details>
+      </section>
+      <section class="panel render" aria-labelledby="render-title">
+        <header class="panel-head">
+          <div><p class="kicker"><span>02</span> 렌더 &amp; 출력</p><h2 id="render-title">녹음 시작!</h2></div>
+          <span class="stamp" aria-hidden="true">✶</span>
+        </header>
+        <div class="render-body">
+          <label>선택 · 반주 WAV <span class="help">PCM 16비트</span><span class="file-control"><input id="backing-file" type="file" accept=".wav,audio/wav,audio/x-wav"><span class="file-button" aria-hidden="true">파일 선택</span><span class="file-name" id="backing-file-name" aria-hidden="true">선택한 파일 없음</span></span></label>
+          <button type="button" class="button primary" id="render">♪ 목소리 만들기</button>
+          <div class="audio-box">
+            <label for="player">완성 음원 듣기</label>
+            <audio id="player" controls preload="none"></audio>
+            <div class="downloads" hidden id="downloads"><a class="button secondary" id="vocal-download" download>보컬 WAV</a><a class="button secondary" id="mix-download" download>믹스 WAV</a></div>
+          </div>
+          <p id="status" role="status" aria-live="polite">악보가 준비되면 렌더 버튼을 눌러 봐.</p>
+          <p class="fine">가사와 반주는 이 브라우저를 떠나지 않아요. 사람 프리셋은 실제 인물 목소리가 아닌 시험용 모음 합성입니다.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="foot"><span>✶ 먀용 보컬실</span><span>제멋대로 반짝여도 박자는 지켜.</span></footer>
+  <script type="module" src="./app.mjs"></script>
+</body>
+</html>
