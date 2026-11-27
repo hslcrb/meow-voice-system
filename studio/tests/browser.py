@@ -144,6 +144,92 @@ def check_score_race(page):
         page.evaluate("() => { window.mvsScoreTest.restore(); delete window.mvsScoreTest; }")
 
 
+def check_render_race(page, studio, artifacts):
+    picker = page.locator("#score-file")
+    backing = page.locator("#backing-file")
+    render = page.locator("#render")
+    downloads = page.locator("#downloads")
+    status = page.locator("#status")
+    player = page.locator("#player")
+    old = {"version": 1, "title": "이전 악보", "voice": "cat", "sampleRate": 16000,
+           "notes": [{"start": 0, "duration": 0.25, "midi": 55, "lyric": "먀"}]}
+    newest = {"version": 1, "title": "최신 악보", "voice": "human", "sampleRate": 16000,
+              "notes": [{"start": 0.25, "duration": 0.25, "midi": 62, "lyric": "옹"}]}
+    current_score, current_wav = artifacts / "최신 악보.json", artifacts / "최신 믹스.wav"
+    current_score.write_text(json.dumps(newest, ensure_ascii=False), encoding="utf-8")
+    local_backing = artifacts / "새 반주.wav"
+    with wave.open(str(local_backing), "wb") as wav:
+        wav.setparams((1, 2, 16000, 0, "NONE", ""))
+        wav.writeframes((1000).to_bytes(2, "little", signed=True) * 10400)
+    subprocess.run(["node", studio / "cli.mjs", "render", current_score,
+                    "--backing", local_backing, "--out", current_wav],
+                   check=True, capture_output=True)
+    page.evaluate("""() => {
+        const NativeWorker = window.Worker;
+        const gate = {armed:false, release:null, restore:() => { window.Worker = NativeWorker; }};
+        window.mvsRenderRace = gate;
+        window.Worker = class extends NativeWorker {
+            set onmessage(callback) {
+                super.onmessage = data => {
+                    if (!gate.armed) return callback(data);
+                    gate.armed = false;
+                    gate.release = reject => callback(reject ? {data:{error:'이전 렌더 오류'}} : data);
+                };
+            }
+        };
+    }""")
+
+    def show_old():
+        picker.set_input_files({"name": "이전 악보.json", "mimeType": "application/json",
+                                "buffer": json.dumps(old, ensure_ascii=False).encode()})
+        expect(page.locator("#title")).to_have_value(old["title"])
+
+    def assert_no_old_output():
+        expect(downloads).to_be_hidden()
+        assert player.get_attribute("src") is None
+        for identifier in ("#vocal-download", "#mix-download"):
+            assert page.locator(identifier).get_attribute("href") is None
+        expect(status).not_to_contain_text("이전 렌더 오류")
+
+    try:
+        for mode in ("score", "edit", "replace-backing", "clear-backing", "old-error"):
+            show_old()
+            backing.set_input_files(local_backing if mode == "clear-backing" else [])
+            page.evaluate("() => { window.mvsRenderRace.armed = true; }")
+            render.click()
+            page.wait_for_function("Boolean(window.mvsRenderRace.release)")
+            if mode in ("score", "old-error"):
+                picker.set_input_files(current_score)
+                expect(page.locator("#title")).to_have_value(newest["title"])
+            elif mode == "edit":
+                page.locator("input[name=lyric]").first.fill("바꾼 가사")
+            else:
+                backing.set_input_files(local_backing if mode == "replace-backing" else [])
+            page.evaluate("""reject => {
+                const gate = window.mvsRenderRace;
+                const release = gate.release;
+                gate.release = null;
+                release(reject);
+            }""", mode == "old-error")
+            expect(render).to_be_enabled()
+            assert_no_old_output()
+
+        backing.set_input_files(local_backing)
+        render.click()
+        expect(downloads).to_be_visible()
+        with page.expect_download() as saved:
+            page.locator("#mix-download").click()
+        assert saved.value.suggested_filename == "최신 악보-믹스.wav"
+        data = saved.value.path().read_bytes()
+        assert data == current_wav.read_bytes()
+        print("Latest score + backing WAV SHA-256", hashlib.sha256(data).hexdigest())
+        backing.set_input_files([])
+        assert_no_old_output()
+    finally:
+        page.evaluate("() => { window.mvsRenderRace.restore(); delete window.mvsRenderRace; }")
+
+
+
 with sync_playwright() as p, tempfile.TemporaryDirectory() as tmp:
     browser = p.chromium.launch(
         executable_path=os.environ.get("CHROMIUM_BIN"), args=["--no-sandbox"]
@@ -390,6 +476,8 @@ with sync_playwright() as p, tempfile.TemporaryDirectory() as tmp:
             print("375 px delayed LRC success, failure and clear are isolated to the active file")
             check_score_race(page)
             print("375 px newer score file, cancellation and manual edits beat delayed imports")
+            check_render_race(page, studio, artifacts)
+            print("375 px obsolete worker returns cannot replace the latest mix; regenerated WAV matches CLI")
         print(width, "px existing WAV SHA-256", hashlib.sha256(downloaded).hexdigest(),
               "MusicXML WAV SHA-256", hashlib.sha256(xml_download).hexdigest())
         assert not errors, errors

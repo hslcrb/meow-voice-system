@@ -14,6 +14,7 @@ let current = { version: 1, sampleRate: 44100, notes: [] };
 let urls = [];
 // Share one ordering across operations that can replace the edited score.
 let scoreRevision = 0;
+let renderRevision = 0;
 const invalidateScoreImport = () => ++scoreRevision;
 const ko = new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 2 });
 
@@ -51,7 +52,7 @@ function addNote(note) {
   remove.className = 'remove';
   remove.textContent = '×';
   remove.addEventListener('click', () => {
-    invalidateScoreImport();
+    onScoreEdit();
     const next = row.nextElementSibling ?? row.previousElementSibling;
     row.remove();
     updateCount();
@@ -63,6 +64,7 @@ function addNote(note) {
 }
 function showScore(value) {
   current = validateScore(value);
+  invalidateRender();
   $('title').value = current.title ?? '';
   $('score-end').value = current.end ?? '';
   $('voice').value = current.voice;
@@ -133,10 +135,15 @@ $('voice').addEventListener('change', updateCall);
 updateCall();
 $('example').addEventListener('click', loadExample);
 for (const id of ['title', 'voice', 'call', 'articulation', 'score-end', 'notes']) {
-  $(id).addEventListener('input', invalidateScoreImport);
+  $(id).addEventListener('input', onScoreEdit);
 }
-$('add-note').addEventListener('click', () => {
+function onScoreEdit() {
   invalidateScoreImport();
+  invalidateRender();
+}
+$('backing-file').addEventListener('change', invalidateRender);
+$('add-note').addEventListener('click', () => {
+  onScoreEdit();
   const last = $('notes').lastElementChild;
   const start = Number(last?.querySelector('[name="start"]').value) || 0;
   const length = Number(last?.querySelector('[name="duration"]').value) || 0.5;
@@ -267,7 +274,6 @@ $('midi-apply').addEventListener('click',()=>{
       title:$('title').value,voice,sampleRate:current.sampleRate,call:voice==='cat'?$('call').value:'meow',
       articulation:selectedArticulation(),
     }));
-    discardUrls();
     announce('선율과 가사를 현재 악보에 넣었어요.');
   } catch(error){announce(error.message,true);}
 });
@@ -279,6 +285,16 @@ function discardUrls() {
   for (const url of urls) URL.revokeObjectURL(url);
   urls = [];
   $('downloads').hidden = true;
+  for (const id of ['vocal-download', 'mix-download']) {
+    $(id).removeAttribute('href');
+    $(id).removeAttribute('download');
+  }
+}
+function invalidateRender() {
+  ++renderRevision;
+  if (!urls.length && !$('render').disabled) return;
+  if (urls.length) discardUrls();
+  announce('악보나 반주가 바뀌었어요. 새 음원을 만들려면 다시 렌더해 주세요.');
 }
 function waveUrl(samples, rate) {
   const url = URL.createObjectURL(new Blob([encodeWav(samples, rate)], { type: 'audio/wav' }));
@@ -298,6 +314,7 @@ function renderInWorker(score, backing) {
 }
 $('render').addEventListener('click', async () => {
   const button = $('render');
+  const revision = renderRevision;
   button.disabled = true;
   try {
     const score = collect();
@@ -305,7 +322,9 @@ $('render').addEventListener('click', async () => {
     announce('음표를 맞춰 녹음 중이에요…');
     const backing = file ? decodeWav(await file.arrayBuffer()) : undefined;
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    if (revision !== renderRevision) return;
     const { sampleRate, vocal, mix } = await renderInWorker(score, backing);
+    if (revision !== renderRevision) return;
     discardUrls();
     const filename = fileStem(score.title);
     const vocalUrl = waveUrl(vocal, sampleRate);
@@ -318,7 +337,7 @@ $('render').addEventListener('click', async () => {
     $('downloads').hidden = false;
     announce(`완성! ${ko.format(mix.length / sampleRate)}초 · ${ko.format(sampleRate)} Hz · WAV`);
   } catch (error) {
-    announce(`렌더하지 못했어요. ${error.message}`, true);
+    if (revision === renderRevision) announce(`렌더하지 못했어요. ${error.message}`, true);
   } finally {
     button.disabled = false;
   }
