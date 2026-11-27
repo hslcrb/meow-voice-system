@@ -62,3 +62,20 @@ test('CLI validates and keeps an explicit score end in the audio and stage',()=>
     assert.match(page,/data-until="0\.375"/);
   } finally{rmSync(dir,{recursive:true,force:true});}
 });
+test('CLI reports LRC offsets from local score without changing either input',()=>{
+  const dir=mkdtempSync(join(tmpdir(),'mvs-lrc-audit-'));
+  try {
+    const score=join(dir,'score.json'),lrc=join(dir,'lines.lrc');
+    const scoreData=JSON.stringify({version:1,voice:'human',notes:[{start:.47,duration:.4,midi:69,lyric:'안녕'}]});
+    const lrcData='[00:00.50]비교용';
+    writeFileSync(score,scoreData);writeFileSync(lrc,lrcData);
+    const result=invoke('lrc-audit',score,'--lyrics',lrc,'--tolerance-ms','25');
+    assert.equal(result.status,0,result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout),{toleranceMs:25,rows:[
+      {start:.5,lyric:'비교용',noteNumber:1,noteStart:.47,deltaMs:-30,withinTolerance:false,soundingNoteNumber:1},
+    ]});
+    assert.equal(readFileSync(score,'utf8'),scoreData);
+    assert.equal(readFileSync(lrc,'utf8'),lrcData);
+    assert.notEqual(invoke('lrc-audit',score,'--lyrics',lrc,'--tolerance-ms','abc').status,0);
+  } finally {rmSync(dir,{recursive:true,force:true});}
+});
