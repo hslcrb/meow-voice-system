@@ -174,9 +174,10 @@ def parse_score(root, voice, verse):
                     raise ValueError("악보 한 개에 최대 5,000개 음표를 지원합니다.")
     if open_tie is not None or not notes:
         raise ValueError("음표가 없거나 마지막 붙임줄이 닫히지 않았습니다.")
+    result = {"version": 1, "title": title[:120], "voice": voice, "notes": notes}
     if trailing_rest:
-        raise ValueError("마지막 쉼표는 현재 JSON으로 보존할 수 없습니다. 끝 길이를 확인하고 명시적으로 편집해 주세요.")
-    return {"version": 1, "title": title[:120], "voice": voice, "notes": notes}
+        result["end"] = float(elapsed)
+    return result
 
 
 def main(argv=None):
