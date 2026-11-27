@@ -21,7 +21,11 @@ export function validateScore(raw) {
     previousEnd=start+duration;
     return {start,duration,midi,lyric:lyric.trim(),velocity};
   });
-  return {version:1,title:typeof raw.title==='string'?raw.title.trim().slice(0,120)||'먀용 스튜디오':'먀용 스튜디오',voice:raw.voice,call,sampleRate,notes};
+  const end=raw.end;
+  if(end!==undefined&&(!isNumber(end,0,MAX_SECONDS)||end+1e-8<previousEnd)) {
+    throw Error('악보 끝 시각은 마지막 음표가 끝난 뒤부터 5분까지로 지정해 주세요.');
+  }
+  return {version:1,...(end===undefined?{}:{end}),title:typeof raw.title==='string'?raw.title.trim().slice(0,120)||'먀용 스튜디오':'먀용 스튜디오',voice:raw.voice,call,sampleRate,notes};
 }
 
 export function parseLrc(text) {
@@ -98,7 +102,7 @@ export function renderScore(raw,{backing}={}) {
   const score=validateScore(raw),s=score.sampleRate,last=score.notes.at(-1);
   if(backing&&(!Number.isInteger(backing.sampleRate)||backing.sampleRate<8000||backing.sampleRate>192000||
     !(backing.samples instanceof Float32Array)||backing.samples.length/backing.sampleRate>MAX_SECONDS)) throw Error('반주는 최대 5분의 PCM16 WAV만 지원해요.');
-  const length=Math.max(Math.round((last.start+last.duration)*s),backing?Math.round(backing.samples.length*s/backing.sampleRate):0);
+  const length=Math.max(Math.round(Math.max(last.start+last.duration,score.end??0)*s),backing?Math.round(backing.samples.length*s/backing.sampleRate):0);
   const vocal=new Float32Array(length);
   for(const n of score.notes) noteInto(vocal,n,s,score.voice,score.call);
   const mixed=vocal.slice();

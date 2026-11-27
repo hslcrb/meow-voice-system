@@ -58,6 +58,7 @@ function addNote(note) {
 function showScore(value) {
   current = validateScore(value);
   $('title').value = current.title ?? '';
+  $('score-end').value = current.end ?? '';
   $('voice').value = current.voice;
   $('call').value = current.call;
   updateCall();
@@ -66,8 +67,11 @@ function showScore(value) {
   updateCount();
 }
 function collect() {
+  const scoreEnd = $('score-end');
+  if (scoreEnd.validity.badInput) throw Error('악보 끝 시각은 초 단위 숫자로 입력해 주세요.');
   return validateScore({
     ...current,
+    end: scoreEnd.value === '' ? undefined : scoreEnd.valueAsNumber,
     title: $('title').value,
     voice: $('voice').value,
     call: $('voice').value === 'cat' ? $('call').value : 'meow',

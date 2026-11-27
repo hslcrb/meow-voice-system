@@ -40,3 +40,25 @@ test('CLI refuses unrecognized options and no partial output on validation failu
   assert.notEqual(invoke('render','studio/examples/meow.json','--at','3').status,0);
   assert.notEqual(invoke('render','studio/examples/meow.json','--out','/tmp/mvs-invalid.mid').status,0);
 });
+test('CLI validates and keeps an explicit score end in the audio and stage',()=>{
+  const dir=mkdtempSync(join(tmpdir(),'mvs-end-'));
+  try {
+    const inFile=join(dir,'score.json'),audio=join(dir,'mix.wav'),html=join(dir,'stage.html');
+    writeFileSync(inFile,JSON.stringify({version:1,voice:'human',sampleRate:16000,end:.75,
+      notes:[{start:.125,duration:.25,midi:69,lyric:'이'}]}));
+    const summary=invoke('validate',inFile);
+    assert.equal(summary.status,0,summary.stderr);
+    assert.equal(JSON.parse(summary.stdout).end,.75);
+    const rendered=invoke('render',inFile,'--out',audio);
+    assert.equal(rendered.status,0,rendered.stderr);
+    const {samples}=decodeWav(readFileSync(audio));
+    assert.equal(samples.length,12000);
+    assert.ok(samples.subarray(6000).every(sample=>sample===0));
+    assert.ok(samples.subarray(2300,5500).some(sample=>Math.abs(sample)>.01));
+    const stage=invoke('show',inFile,'--out',html);
+    assert.equal(stage.status,0,stage.stderr);
+    const page=readFileSync(html,'utf8');
+    assert.match(page,/합성 · 0\.75초/);
+    assert.match(page,/data-until="0\.375"/);
+  } finally{rmSync(dir,{recursive:true,force:true});}
+});

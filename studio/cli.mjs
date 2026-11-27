@@ -76,7 +76,7 @@ async function main(args) {
   if(op==='lrc'){console.log(JSON.stringify(parseLrc((await readBounded(input,1_600_000)).toString('utf8')),null,2));return;}
   if(op==='provider-check'){console.log(JSON.stringify(await providerCandidates(input),null,2));return;}
   const score=validateScore(JSON.parse((await readBounded(input,2_000_000)).toString('utf8')));
-  if(op==='validate'){console.log(JSON.stringify({title:score.title,voice:score.voice,call:score.call,sampleRate:score.sampleRate,notes:score.notes.length}));return;}
+  if(op==='validate'){console.log(JSON.stringify({title:score.title,voice:score.voice,call:score.call,sampleRate:score.sampleRate,end:score.end,notes:score.notes.length}));return;}
   const out=options['--out'],stem=options['--vocal'];
   if(!out?.toLowerCase().endsWith(op==='show'?'.html':'.wav')||(stem&&(!stem.toLowerCase().endsWith('.wav')||resolve(stem)===resolve(out)))) throw Error('서로 다른 유효한 출력 파일 경로를 지정해 주세요.');
   const data=renderScore(score,{backing:await getWav(options['--backing'])});

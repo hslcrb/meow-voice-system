@@ -116,6 +116,29 @@ with sync_playwright() as p, tempfile.TemporaryDirectory() as tmp:
                 page.locator("#mix-download").click()
             assert nfd_output.value.path().read_bytes() == expected_xml, "분해형 한글이 파형을 바꿉니다."
             print("375 px Hangul NFD WAV matches NFC; editor text is unchanged")
+            end_control = page.get_by_role("spinbutton", name="악보 끝 시각 (초) 선택")
+            expect(end_control).to_have_value("")
+            padded_score = {**nfd_data, "end": 2.75}
+            page.locator("#score-file").set_input_files({
+                "name": "마지막 쉼표.json", "mimeType": "application/json",
+                "buffer": json.dumps(padded_score, ensure_ascii=False).encode("utf-8"),
+            })
+            expect(end_control).to_have_value("2.75")
+            page.locator("#render").click()
+            expect(page.locator("#status")).to_contain_text("2.75")
+            with page.expect_download() as padded_wav:
+                page.locator("#mix-download").click()
+            with wave.open(str(padded_wav.value.path())) as audio, wave.open(io.BytesIO(expected_xml)) as original:
+                assert (audio.getframerate(), audio.getnframes()) == (44100, 121275)
+                assert audio.readframes(99225) == original.readframes(99225)
+                assert audio.readframes(22050) == bytes(44100)
+            end_control.fill("1")
+            page.locator("#render").click()
+            expect(page.locator("#status")).to_contain_text("마지막 음표")
+            end_control.fill("")
+            page.locator("#render").click()
+            expect(page.locator("#status")).to_contain_text("2.25")
+            print("375 px declared end adds 22050 silent samples without changing voiced samples")
         print(width, "px existing WAV SHA-256", hashlib.sha256(downloaded).hexdigest(),
               "MusicXML WAV SHA-256", hashlib.sha256(xml_download).hexdigest())
         assert not errors, errors

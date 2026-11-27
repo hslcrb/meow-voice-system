@@ -64,3 +64,23 @@ test('canonically equivalent Hangul lyrics render identical WAV bytes without ch
     }
   }
 });
+test('a declared score end preserves trailing silence without changing any voiced sample',()=>{
+  const raw=score('human');
+  const usual=renderScore(raw);
+  const withEnd={...raw,end:1.25};
+  const extended=renderScore(withEnd);
+  assert.equal(validateScore(withEnd).end,1.25);
+  assert.equal(extended.vocal.length,20000);
+  assert.deepEqual(extended.vocal.subarray(0,usual.vocal.length),usual.vocal);
+  assert.ok(extended.vocal.subarray(usual.vocal.length).every(sample=>sample===0));
+  assert.ok(extended.mix.subarray(usual.mix.length).every(sample=>sample===0));
+  assert.equal(renderScore({...raw,end:.8}).mix.length,usual.mix.length);
+  for (const end of [0,.79,-1,301,'1.25',null,NaN,Infinity]){
+    assert.throws(()=>validateScore({...raw,end}),/끝 시각/);
+  }
+  const samples=new Float32Array(24000).fill(.3);
+  const longer=renderScore(withEnd,{backing:{sampleRate:16000,samples}});
+  assert.equal(longer.mix.length,24000);
+  assert.ok(longer.mix[23999]>.1);
+  assert.equal(longer.vocal[23999],0);
+});
