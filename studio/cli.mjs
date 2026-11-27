@@ -2,12 +2,15 @@ import {readFile,writeFile,stat} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {decodeWav, encodeWav, parseLrc, renderScore, validateScore} from './core.mjs';
+import {parseMidi,scoreFromMidi} from './midi.mjs';
 
 const help=`먀용 스튜디오
   node studio/cli.mjs validate <score.json>
   node studio/cli.mjs render <score.json> --out <mix.wav> [--backing <pcm16.wav>] [--vocal <stem.wav>]
   node studio/cli.mjs show <score.json> --out <stage.html> [--backing <pcm16.wav>]
   node studio/cli.mjs lrc <lyrics.lrc>
+  node studio/cli.mjs midi-list <melody.mid>
+  node studio/cli.mjs midi-import <melody.mid> --track N --lyrics <syllables.json> --out <score.json>
   node studio/cli.mjs provider-check <곡 검색어>`;
 const readBounded=async(path,max)=>{
   const info=await stat(path);
@@ -48,13 +51,27 @@ export async function providerCandidates(query,fetcher=fetch) {
 async function main(args) {
   if(!args.length||args[0]==='--help'){console.log(help);return;}
   const [op,input,...tail]=args;
-  if(!['validate','render','show','lrc','provider-check'].includes(op)||!input) throw Error(help);
+  if(!['validate','render','show','lrc','provider-check','midi-list','midi-import'].includes(op)||!input) throw Error(help);
   const options={};
-  const allowed=op==='render'?['--out','--backing','--vocal']:op==='show'?['--out','--backing']:[];
+  const allowed=op==='render'?['--out','--backing','--vocal']:op==='show'?['--out','--backing']:op==='midi-import'?['--track','--lyrics','--out']:[];
   for(let i=0;i<tail.length;i+=2){
     const k=tail[i],v=tail[i+1];
     if(!allowed.includes(k)||!v||v.startsWith('--')||Object.hasOwn(options,k)) throw Error('지원하지 않거나 값이 없는 옵션: '+k);
     options[k]=v;
+  }
+  if(op==='midi-list'){
+    const {format,ppq,tracks}=parseMidi(await readBounded(input,2_000_000));
+    console.log(JSON.stringify({format,ppq,tracks:tracks.map((t,number)=>({number,notes:t.notes.length}))}));
+    return;
+  }
+  if(op==='midi-import'){
+    const track=options['--track'],lyrics=options['--lyrics'],out=options['--out'];
+    if(!/^(0|[1-9][0-9]?)$/.test(track??'')||!lyrics||!out?.toLowerCase().endsWith('.json')) throw Error('MIDI 가져오기는 --track N, --lyrics JSON, --out JSON이 필요합니다.');
+    const parts=JSON.parse((await readBounded(lyrics,2_000_000)).toString('utf8'));
+    const result=scoreFromMidi(await readBounded(input,2_000_000),Number(track),parts);
+    await outputFile(out,JSON.stringify(result,null,2)+'\n');
+    console.log(JSON.stringify({out,track:Number(track),notes:result.notes.length}));
+    return;
   }
   if(op==='lrc'){console.log(JSON.stringify(parseLrc((await readBounded(input,1_600_000)).toString('utf8')),null,2));return;}
   if(op==='provider-check'){console.log(JSON.stringify(await providerCandidates(input),null,2));return;}
