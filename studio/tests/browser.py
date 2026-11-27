@@ -71,6 +71,79 @@ def check_lrc_race(page):
         page.evaluate("() => { window.mvsLrcTest.restore(); delete window.mvsLrcTest; }")
 
 
+def check_score_race(page):
+    picker = page.locator("#score-file")
+    title = page.locator("#title")
+    status = page.locator("#status")
+    payload = {"version": 1, "title": "현재 작품", "voice": "human",
+               "sampleRate": 16000, "notes": [{"start": 0.1, "duration": 0.3, "midi": 59, "lyric": "지금"}]}
+    page.evaluate("""() => {
+        const read = File.prototype.text;
+        const fetcher = window.fetch;
+        window.mvsScoreTest = {
+            pending: new Map(), deferExample: false,
+            restore() { File.prototype.text = read; window.fetch = fetcher; }
+        };
+        const {pending} = window.mvsScoreTest;
+        File.prototype.text = function() {
+            if (!this.name.startsWith('old-')) return read.call(this);
+            return new Promise((resolve, reject) => pending.set(this.name, {resolve, reject}));
+        };
+        window.fetch = (...args) => {
+            if (!window.mvsScoreTest.deferExample || !String(args[0]).endsWith('/examples/meow.json')) {
+                return fetcher(...args);
+            }
+            return new Promise((resolve, reject) => pending.set('example', {resolve, reject}));
+        };
+    }""")
+
+    def choose(name):
+        picker.set_input_files({"name": name, "mimeType": "application/json",
+                                "buffer": json.dumps(payload, ensure_ascii=False).encode()})
+
+    def wait(name):
+        page.wait_for_function("(key) => window.mvsScoreTest.pending.has(key)", arg=name)
+
+    def finish(name, reject=False):
+        page.evaluate("""async ({name, reject, raw}) => {
+            const {pending} = window.mvsScoreTest;
+            const action = pending.get(name);
+            pending.delete(name);
+            if (reject) action.reject(new Error('이전 파일 오류'));
+            else action.resolve(name === 'example' ? new Response(raw) : raw);
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }""", {"name": name, "reject": reject,
+                "raw": json.dumps({**payload, "title": "삭제된 이전 작업"}, ensure_ascii=False)})
+
+    try:
+        for mode in ("success", "error", "clear", "edit"):
+            old = f"old-{mode}.json"
+            choose(old)
+            wait(old)
+            if mode in ("success", "error"):
+                choose("now.json")
+                expect(status).to_contain_text("now.json")
+            elif mode == "clear":
+                picker.set_input_files([])
+            else:
+                title.fill("직접 편집")
+            finish(old, mode == "error")
+            expect(title).to_have_value("직접 편집" if mode == "edit" else "현재 작품")
+            expect(status).not_to_contain_text("이전 파일 오류")
+            expect(page.locator("input[name=lyric]").first).to_have_value("지금")
+
+        page.evaluate("() => { window.mvsScoreTest.deferExample = true; }")
+        page.locator("#example").click()
+        wait("example")
+        choose("now-after-example.json")
+        expect(status).to_contain_text("now-after-example.json")
+        finish("example")
+        expect(title).to_have_value("현재 작품")
+        expect(status).to_contain_text("now-after-example.json")
+    finally:
+        page.evaluate("() => { window.mvsScoreTest.restore(); delete window.mvsScoreTest; }")
+
+
 with sync_playwright() as p, tempfile.TemporaryDirectory() as tmp:
     browser = p.chromium.launch(
         executable_path=os.environ.get("CHROMIUM_BIN"), args=["--no-sandbox"]
@@ -315,6 +388,8 @@ with sync_playwright() as p, tempfile.TemporaryDirectory() as tmp:
             expect(page.locator("#notes .note")).to_have_count(5)
             check_lrc_race(page)
             print("375 px delayed LRC success, failure and clear are isolated to the active file")
+            check_score_race(page)
+            print("375 px newer score file, cancellation and manual edits beat delayed imports")
         print(width, "px existing WAV SHA-256", hashlib.sha256(downloaded).hexdigest(),
               "MusicXML WAV SHA-256", hashlib.sha256(xml_download).hexdigest())
         assert not errors, errors

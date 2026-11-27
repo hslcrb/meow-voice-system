@@ -12,7 +12,9 @@ const fields = [
 ];
 let current = { version: 1, sampleRate: 44100, notes: [] };
 let urls = [];
-let initialized = false;
+// Share one ordering across operations that can replace the edited score.
+let scoreRevision = 0;
+const invalidateScoreImport = () => ++scoreRevision;
 const ko = new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 2 });
 
 function announce(message, error = false) {
@@ -49,6 +51,7 @@ function addNote(note) {
   remove.className = 'remove';
   remove.textContent = '×';
   remove.addEventListener('click', () => {
+    invalidateScoreImport();
     const next = row.nextElementSibling ?? row.previousElementSibling;
     row.remove();
     updateCount();
@@ -93,17 +96,16 @@ function collect() {
 }
 
 async function loadExample() {
+  const revision = invalidateScoreImport();
   try {
     const res = await fetch(new URL('./examples/meow.json', import.meta.url));
     if (!res.ok) throw Error(`예제 파일을 열 수 없어요 (HTTP ${res.status}).`);
     const example = await res.json();
-    if (!initialized && $('notes').children.length > 0) return;
+    if (revision !== scoreRevision) return;
     showScore(example);
     announce('예제가 준비됐어요. 음표를 바꾸거나 이대로 소리를 만들어 보세요.');
   } catch (error) {
-    announce(error.message, true);
-  } finally {
-    initialized = true;
+    if (revision === scoreRevision) announce(error.message, true);
   }
 }
 
@@ -130,7 +132,11 @@ function updateCall() {
 $('voice').addEventListener('change', updateCall);
 updateCall();
 $('example').addEventListener('click', loadExample);
+for (const id of ['title', 'voice', 'call', 'articulation', 'score-end', 'notes']) {
+  $(id).addEventListener('input', invalidateScoreImport);
+}
 $('add-note').addEventListener('click', () => {
+  invalidateScoreImport();
   const last = $('notes').lastElementChild;
   const start = Number(last?.querySelector('[name="start"]').value) || 0;
   const length = Number(last?.querySelector('[name="duration"]').value) || 0.5;
@@ -157,13 +163,17 @@ $('save-score').addEventListener('click', () => {
   } catch (error) { announce(`악보를 저장하지 못했어요. ${error.message}`, true); }
 });
 $('score-file').addEventListener('change', async () => {
+  const revision = invalidateScoreImport();
   try {
     const file = localFile('score-file', SCORE_BYTES);
     if (!file) return;
-    showScore(JSON.parse(await file.text()));
-    initialized = true;
+    const raw = await file.text();
+    if (revision !== scoreRevision) return;
+    showScore(JSON.parse(raw));
     announce(`${file.name} 악보를 불러왔어요.`);
-  } catch (error) { announce(`악보를 불러오지 못했어요. ${error.message}`, true); }
+  } catch (error) {
+    if (revision === scoreRevision) announce(`악보를 불러오지 못했어요. ${error.message}`, true);
+  }
 });
 let lrcText, lrcRevision = 0;
 function clearLrcAudit() {
@@ -249,6 +259,7 @@ $('midi-file').addEventListener('change',async()=>{
 });
 $('midi-apply').addEventListener('click',()=>{
   if(!midiBytes)return;
+  invalidateScoreImport();
   try {
     const lyrics=$('midi-lyrics').value.trim().split(/\r?\n/);
     const voice=$('voice').value;
@@ -256,7 +267,6 @@ $('midi-apply').addEventListener('click',()=>{
       title:$('title').value,voice,sampleRate:current.sampleRate,call:voice==='cat'?$('call').value:'meow',
       articulation:selectedArticulation(),
     }));
-    initialized=true;
     discardUrls();
     announce('선율과 가사를 현재 악보에 넣었어요.');
   } catch(error){announce(error.message,true);}
