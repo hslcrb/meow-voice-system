@@ -54,7 +54,8 @@ function noteInto(out,n,s,voice,call) {
   const from=Math.round(n.start*s), to=Math.min(out.length,Math.round((n.start+n.duration)*s)), len=to-from;
   const midiHz=440*2**((n.midi-69)/12);
   const feline=voice==='cat'?1:voice==='hybrid'?.48:0;
-  const syllables=[...n.lyric.replace(/\s/g,'')].map(vowelOf);
+  // Compose Hangul for formant selection without changing the score's original lyric.
+  const syllables=[...n.lyric.normalize('NFC').replace(/\s/g,'')].map(vowelOf);
   const harmonics=Array.from({length:9},(_,h)=>h < 2 ? 1 : 1/(h**(1.28-feline*.14)));
   // A deterministic source/filter bank: harmonic excitation and parallel vowel resonators.
   let phase=0,hissMean=0, prevNoise=0;

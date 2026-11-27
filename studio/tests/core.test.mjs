@@ -48,3 +48,19 @@ test('LRC gives lyric start times without inventing pitch',()=>{
   assert.deepEqual(parseLrc('[ar:TEST]\n[00:01.05][00:02.500]먀\n[00:03.00]용'),[{start:1.05,lyric:'먀'},{start:2.5,lyric:'먀'},{start:3,lyric:'용'}]);
   assert.throws(()=>parseLrc('no timestamps'));
 });
+test('canonically equivalent Hangul lyrics render identical WAV bytes without changing the text',()=>{
+  for(const voice of ['cat','human','hybrid']){
+    for(const text of ['이','냐옹','뿌리']){
+      const nfc=text.normalize('NFC'), nfd=text.normalize('NFD');
+      assert.notEqual(nfc,nfd);
+      const make=lyric=>({...score(voice),notes:[{start:.12,duration:.42,midi:69,lyric}]});
+      const source=make(nfd);
+      assert.deepEqual(validateScore(source).notes, [{...source.notes[0],velocity:.8}]);
+      const first=renderScore(make(nfc)), second=renderScore(source);
+      assert.equal(first.mix.length,8640);
+      assert.ok(second.vocal.subarray(0,1920).every(x=>x===0));
+      assert.equal(Buffer.compare(encodeWav(second.mix,second.sampleRate),encodeWav(first.mix,first.sampleRate)),0,voice+' '+text);
+      assert.equal(source.notes[0].lyric,nfd);
+    }
+  }
+});

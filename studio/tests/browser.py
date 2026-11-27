@@ -1,11 +1,13 @@
 """Playwright smoke test: serve build.mjs output first, then provide its local URL."""
 import hashlib
 import io
+import json
 import os
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import unicodedata
 import wave
 
 from playwright.sync_api import expect, sync_playwright
@@ -36,6 +38,11 @@ with sync_playwright() as p, tempfile.TemporaryDirectory() as tmp:
     subprocess.run(["node", studio / "cli.mjs", "render", xml_score, "--out", xml_wav],
                    check=True, capture_output=True)
     expected_xml = xml_wav.read_bytes()
+    nfd_score = artifacts / "분해형 가사.json"
+    nfd_data = json.loads(xml_score.read_text(encoding="utf-8"))
+    for note in nfd_data["notes"]:
+        note["lyric"] = unicodedata.normalize("NFD", note["lyric"])
+    nfd_score.write_text(json.dumps(nfd_data, ensure_ascii=False), encoding="utf-8")
     for width in [1440, 768, 375, 320]:
         page = browser.new_page(viewport={"width": width, "height": 1000}, accept_downloads=True)
         errors, http_errors = [], []
@@ -98,6 +105,17 @@ with sync_playwright() as p, tempfile.TemporaryDirectory() as tmp:
         assert xml_download == expected_xml, "MusicXML 변환 악보의 브라우저와 CLI WAV가 서로 다릅니다."
         if shot and width == 375:
             page.screenshot(path=str(shot / "studio-musicxml-mobile.png"), full_page=True)
+        if width == 375:
+            previous_link = page.locator("#mix-download").get_attribute("href")
+            page.locator("#score-file").set_input_files(nfd_score)
+            expect(page.locator("#notes .note input[name=lyric]").first).to_have_value(nfd_data["notes"][0]["lyric"])
+            page.locator("#render").click()
+            expect(page.locator("#status")).to_contain_text("2.25")
+            assert page.locator("#mix-download").get_attribute("href") != previous_link
+            with page.expect_download() as nfd_output:
+                page.locator("#mix-download").click()
+            assert nfd_output.value.path().read_bytes() == expected_xml, "분해형 한글이 파형을 바꿉니다."
+            print("375 px Hangul NFD WAV matches NFC; editor text is unchanged")
         print(width, "px existing WAV SHA-256", hashlib.sha256(downloaded).hexdigest(),
               "MusicXML WAV SHA-256", hashlib.sha256(xml_download).hexdigest())
         assert not errors, errors
