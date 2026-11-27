@@ -11,6 +11,8 @@ export function validateScore(raw) {
   if (!RATES.has(sampleRate) || !CALLS.has(call)) throw Error('지원하지 않는 샘플률 또는 발성 프리셋입니다.');
   if (raw.voice!=='cat' && call!=='meow') throw Error('특수 호출은 고양이 보컬에서만 선택할 수 있어요.');
   if (!Array.isArray(raw.notes)||!raw.notes.length||raw.notes.length>5000) throw Error('음표는 1개 이상, 5,000개 이하로 넣어 주세요.');
+  const articulation=raw.articulation;
+  if(articulation!==undefined&&(articulation!=='nasal'||raw.voice==='cat')) throw Error('비음 받침 실험은 사람·혼합 보컬에서만 선택할 수 있어요.');
   let previousEnd=0;
   const notes=raw.notes.map((note,i)=>{
     const {start,duration,midi,lyric,velocity=0.8}=note??{};
@@ -25,7 +27,7 @@ export function validateScore(raw) {
   if(end!==undefined&&(!isNumber(end,0,MAX_SECONDS)||end+1e-8<previousEnd)) {
     throw Error('악보 끝 시각은 마지막 음표가 끝난 뒤부터 5분까지로 지정해 주세요.');
   }
-  return {version:1,...(end===undefined?{}:{end}),title:typeof raw.title==='string'?raw.title.trim().slice(0,120)||'먀용 스튜디오':'먀용 스튜디오',voice:raw.voice,call,sampleRate,notes};
+  return {version:1,...(end===undefined?{}:{end}),...(articulation===undefined?{}:{articulation}),title:typeof raw.title==='string'?raw.title.trim().slice(0,120)||'먀용 스튜디오':'먀용 스튜디오',voice:raw.voice,call,sampleRate,notes};
 }
 
 export function parseLrc(text) {
@@ -54,12 +56,18 @@ function vowelOf(s) {
 const noiseAt = i => ((Math.imul(i+12345,1597334677)^Math.imul(i+17,2246822519))>>>0)/2147483648-1;
 const mix = (a,b,t) => a+(b-a)*t;
 
-function noteInto(out,n,s,voice,call) {
+function noteInto(out,n,s,voice,call,nasalCoda) {
   const from=Math.round(n.start*s), to=Math.min(out.length,Math.round((n.start+n.duration)*s)), len=to-from;
   const midiHz=440*2**((n.midi-69)/12);
   const feline=voice==='cat'?1:voice==='hybrid'?.48:0;
   // Compose Hangul for formant selection without changing the score's original lyric.
-  const syllables=[...n.lyric.normalize('NFC').replace(/\s/g,'')].map(vowelOf);
+  const text=n.lyric.normalize('NFC').replace(/\s/g,'');
+  const syllables=[...text].map(vowelOf);
+  const hangul=text.codePointAt(0)-0xAC00;
+  const tail=nasalCoda&&text.length===1&&hangul>=0&&hangul<11172&&[4,16,21].includes(hangul%28)
+    ? Math.round(Math.min(.07,n.duration*.25)*s) : 0;
+  const nasalAlpha=tail?1-Math.exp(-TAU*420/s):0;
+  let nasal=0;
   const harmonics=Array.from({length:9},(_,h)=>h < 2 ? 1 : 1/(h**(1.28-feline*.14)));
   // A deterministic source/filter bank: harmonic excitation and parallel vowel resonators.
   let phase=0,hissMean=0, prevNoise=0;
@@ -91,6 +99,14 @@ function noteInto(out,n,s,voice,call) {
     const attack=clamp(t/.017,0,1),release=clamp((len-1-j)/s/.029,0,1);
     let x=.17*pulse+.63*filtered+(.018+.025*feline)*(noise-prevNoise);
     prevNoise=noise;
+    if(tail){
+      nasal+=nasalAlpha*(pulse-nasal);
+      const intoTail=j-(len-tail);
+      if(intoTail>0){
+        const blend=clamp(intoTail/(tail*.25),0,1);
+        x=mix(x,.22*nasal,.85*blend*blend*(3-2*blend));
+      }
+    }
     if(call==='purr') x=.5*Math.sin(TAU*24*t)*(.6+.36*Math.sin(TAU*2*t))+.13*filtered;
     if(call==='hiss') x=.48*(noise-hissMean)*(.55+.45*Math.sin(Math.PI*p));
     if(call==='growl') x=x*(.68+.3*Math.sin(TAU*34*t))+.075*(noise-hissMean);
@@ -104,7 +120,11 @@ export function renderScore(raw,{backing}={}) {
     !(backing.samples instanceof Float32Array)||backing.samples.length/backing.sampleRate>MAX_SECONDS)) throw Error('반주는 최대 5분의 PCM16 WAV만 지원해요.');
   const length=Math.max(Math.round(Math.max(last.start+last.duration,score.end??0)*s),backing?Math.round(backing.samples.length*s/backing.sampleRate):0);
   const vocal=new Float32Array(length);
-  for(const n of score.notes) noteInto(vocal,n,s,score.voice,score.call);
+  const nasal=score.articulation==='nasal';
+  for(let i=0;i<score.notes.length;i++){
+    const n=score.notes[i],next=score.notes[i+1];
+    noteInto(vocal,n,s,score.voice,score.call,nasal&&(!next||next.start-(n.start+n.duration)>=.03-1e-8));
+  }
   const mixed=vocal.slice();
   if(backing) {
     const ratio=backing.sampleRate/s;
