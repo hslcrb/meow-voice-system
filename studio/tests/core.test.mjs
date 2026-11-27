@@ -84,3 +84,35 @@ test('a declared score end preserves trailing silence without changing any voice
   assert.ok(longer.mix[23999]>.1);
   assert.equal(longer.vocal[23999],0);
 });
+test('opt-in nasal coda colours only a standalone Korean note ending without shifting F0 or time',()=>{
+  const note=lyric=>({start:.12,duration:.5,midi:57,lyric});
+  const raw=voice=>({...score(voice),notes:[note('양')]});
+  const compare=(a,b)=>Buffer.compare(encodeWav(a.vocal,a.sampleRate),encodeWav(b.vocal,b.sampleRate));
+  for(const voice of ['human','hybrid']){
+    const dry=renderScore(raw(voice));
+    const src={...raw(voice),articulation:'nasal'};
+    assert.equal(validateScore(src).articulation,'nasal');
+    const wet=renderScore(src);
+    assert.equal(wet.vocal.length,9920);
+    assert.equal(compare(wet,renderScore({...src,notes:[note('양'.normalize('NFD'))]})),0);
+    assert.deepEqual(wet.vocal.subarray(0,8800),dry.vocal.subarray(0,8800));
+    assert.ok(wet.vocal.subarray(8900,9660).some((v,i)=>Math.abs(v-dry.vocal[8900+i])>.005));
+    assert.ok(wet.vocal.every(v=>Number.isFinite(v)&&Math.abs(v)<=.94));
+    for (const lyric of ['야','약','양야','A']){
+      const other={...raw(voice),notes:[note(lyric)]};
+      assert.equal(compare(renderScore(other),renderScore({...other,articulation:'nasal'})),0,lyric);
+    }
+    const adjacent={...src,notes:[note('양'),{start:.62,duration:.25,midi:57,lyric:'이'}]};
+    assert.equal(compare(renderScore(adjacent),renderScore({...adjacent,articulation:undefined})),0);
+  }
+  const tail=(lyric,articulation)=>renderScore({...raw('human'),notes:[note(lyric)],articulation}).vocal.slice(9020,9590);
+  for(const lyric of ['얀','얌','양']){
+    const wet=tail(lyric,'nasal'),dry=tail(lyric);
+    const power=(buf,hz)=>Math.hypot(...[Math.cos,Math.sin].map(fn=>buf.reduce((sum,v,i)=>sum+v*fn(2*Math.PI*hz*i/16000),0)));
+    assert.ok(power(wet,220)>3*power(wet,165));
+    assert.ok(power(wet,220)>3*power(wet,275));
+    assert.ok(power(wet,880)/power(wet,220)<power(dry,880)/power(dry,220));
+  }
+  assert.throws(()=>validateScore({...raw('cat'),articulation:'nasal'}),/받침/);
+  assert.throws(()=>validateScore({...raw('human'),articulation:'unknown'}),/받침/);
+});

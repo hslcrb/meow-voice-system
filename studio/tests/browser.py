@@ -165,6 +165,34 @@ with sync_playwright() as p, tempfile.TemporaryDirectory() as tmp:
                 assert any(audio.readframes(22050))
                 assert audio.readframes(22050) == bytes(44100)
             print("375 px MIDI file end keeps 22050 silent samples")
+            dry_score = {
+                "version": 1, "voice": "human",
+                "notes": [{"start": 0, "duration": 0.5, "midi": 57, "lyric": "양"}],
+            }
+            dry_file = artifacts / "받침-기본.json"
+            wet_file = artifacts / "받침-실험.json"
+            wet_wav = artifacts / "받침-실험.wav"
+            dry_file.write_text(json.dumps(dry_score, ensure_ascii=False), encoding="utf-8")
+            wet_file.write_text(json.dumps({**dry_score, "articulation": "nasal"}, ensure_ascii=False),
+                                encoding="utf-8")
+            subprocess.run(["node", studio / "cli.mjs", "render", wet_file, "--out", wet_wav],
+                           check=True, capture_output=True)
+            page.locator("#score-file").set_input_files(dry_file)
+            expect(page.locator("input[name=lyric]").first).to_have_value("양")
+            voice_select = page.locator("#voice")
+            expect(voice_select).to_have_value("human")
+            mode = page.locator("#articulation")
+            expect(mode).to_have_value("")
+            mode.select_option("nasal")
+            prior_href = page.locator("#mix-download").get_attribute("href")
+            page.locator("#render").click()
+            page.wait_for_function("(old) => document.querySelector('#mix-download').href !== old", arg=prior_href)
+            with page.expect_download() as nasal_wav:
+                page.locator("#mix-download").click()
+            assert nasal_wav.value.path().read_bytes() == wet_wav.read_bytes()
+            voice_select.select_option("cat")
+            expect(mode).to_be_hidden()
+            print("375 px selected nasal mode matches the explicit CLI score")
         print(width, "px existing WAV SHA-256", hashlib.sha256(downloaded).hexdigest(),
               "MusicXML WAV SHA-256", hashlib.sha256(xml_download).hexdigest())
         assert not errors, errors

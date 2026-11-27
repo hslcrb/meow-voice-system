@@ -61,6 +61,7 @@ function showScore(value) {
   $('score-end').value = current.end ?? '';
   $('voice').value = current.voice;
   $('call').value = current.call;
+  $('articulation').value = current.articulation ?? '';
   updateCall();
   $('notes').replaceChildren();
   for (const note of current.notes) addNote(note);
@@ -75,6 +76,7 @@ function collect() {
     title: $('title').value,
     voice: $('voice').value,
     call: $('voice').value === 'cat' ? $('call').value : 'meow',
+    articulation: selectedArticulation(),
     notes: [...$('notes').children].map((row, index) => {
       const entries = fields.map(({ key }) => {
         const input = row.querySelector(`[name="${key}"]`);
@@ -114,7 +116,14 @@ for (const id of ['score-file', 'lyric-file', 'backing-file', 'midi-file']) {
   });
 }
 
-function updateCall() { $('cat-call').hidden = $('voice').value !== 'cat'; }
+function selectedArticulation() {
+  return $('voice').value==='cat'?undefined:($('articulation').value||undefined);
+}
+function updateCall() {
+  const cat = $('voice').value === 'cat';
+  $('cat-call').hidden = !cat;
+  $('articulation-control').hidden = cat;
+}
 $('voice').addEventListener('change', updateCall);
 updateCall();
 $('example').addEventListener('click', loadExample);
@@ -188,6 +197,7 @@ $('midi-apply').addEventListener('click',()=>{
     const voice=$('voice').value;
     showScore(scoreFromMidi(midiBytes,Number($('midi-track').value),lyrics,{
       title:$('title').value,voice,sampleRate:current.sampleRate,call:voice==='cat'?$('call').value:'meow',
+      articulation:selectedArticulation(),
     }));
     initialized=true;
     discardUrls();
