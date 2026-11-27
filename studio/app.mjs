@@ -2,6 +2,8 @@ import { auditLrc, validateScore, encodeWav, decodeWav, parseLrc } from './core.
 import {parseMidi,scoreFromMidi} from './midi.mjs';
 
 const $ = id => document.getElementById(id);
+const SCORE_BYTES = 2_000_000;
+const fileStem = title => (title || 'mvs').replace(/[^\p{L}\p{N}_ -]/gu, '_').trim() || 'mvs';
 const fields = [
   { key: 'start', label: '시작 (초)', min: 0, step: 0.01 },
   { key: 'duration', label: '길이 (초)', min: 0.02, step: 0.01 },
@@ -136,9 +138,27 @@ $('add-note').addEventListener('click', () => {
   updateCount();
   row.querySelector('input').focus();
 });
+$('save-score').addEventListener('click', () => {
+  try {
+    const score=collect();
+    const blob=new Blob([JSON.stringify(score,null,2)+'\n'],{type:'application/json'});
+    if(blob.size>SCORE_BYTES) throw Error('악보 JSON은 2 MB까지 저장할 수 있어요.');
+    const link=document.createElement('a');
+    const url=URL.createObjectURL(blob);
+    link.href=url;
+    link.download=`${fileStem(score.title)}-악보.json`;
+    document.body.append(link);
+    try { link.click(); }
+    finally {
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    }
+    announce('현재 악보 JSON을 저장 목록에 보냈어요. 반주와 LRC는 포함하지 않아요.');
+  } catch (error) { announce(`악보를 저장하지 못했어요. ${error.message}`, true); }
+});
 $('score-file').addEventListener('change', async () => {
   try {
-    const file = localFile('score-file', 1024 * 1024);
+    const file = localFile('score-file', SCORE_BYTES);
     if (!file) return;
     showScore(JSON.parse(await file.text()));
     initialized = true;
@@ -277,7 +297,7 @@ $('render').addEventListener('click', async () => {
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const { sampleRate, vocal, mix } = await renderInWorker(score, backing);
     discardUrls();
-    const filename = (score.title || 'mvs').replace(/[^\p{L}\p{N}_ -]/gu, '_').trim() || 'mvs';
+    const filename = fileStem(score.title);
     const vocalUrl = waveUrl(vocal, sampleRate);
     const mixUrl = waveUrl(mix, sampleRate);
     $('player').src = mixUrl;
