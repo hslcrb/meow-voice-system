@@ -1,6 +1,9 @@
 import { auditLrc, validateScore, encodeWav, decodeWav, parseLrc } from './core.mjs';
 import {parseMidi,scoreFromMidi} from './midi.mjs';
 
+// Only the shared Vite server includes the WASM application at the parent route.
+if (import.meta.env?.MODE) document.querySelector('.mast-tract')?.removeAttribute('hidden');
+
 const $ = id => document.getElementById(id);
 const SCORE_BYTES = 2_000_000;
 const fileStem = title => (title || 'mvs').replace(/[^\p{L}\p{N}_ -]/gu, '_').trim() || 'mvs';
