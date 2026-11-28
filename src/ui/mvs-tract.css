@@ -1,0 +1,68 @@
+/* MVS chrome only. Do not restyle canvases, engine palettes, anatomy geometry or pointer areas. */
+.mvs-tract {
+  --mvs-plum: #2a1536;
+  --mvs-night: #140d19;
+  --mvs-petal: #ff9ccc;
+  --mvs-lace: #ffe8f1;
+  --mvs-lemon: #ffe47c;
+  background: var(--mvs-night);
+}
+
+.mvs-tract .topbar {
+  padding: 9px 12px;
+  border: 1px solid #62415a;
+  border-top: 3px solid var(--mvs-petal);
+  background: repeating-linear-gradient(135deg, #271531 0 9px, #301935 9px 18px);
+  color: var(--mvs-lace);
+}
+
+.mvs-tract .topbar .wordmark {
+  color: var(--mvs-petal);
+  font: 950 italic 1.7rem/.92 system-ui, sans-serif;
+  letter-spacing: -.08em;
+  text-shadow: 2px 2px #140b18;
+  white-space: nowrap;
+}
+.mvs-tract .wordmark span { margin-inline-start: .34em; color: var(--mvs-lemon); font-size: .65em; }
+.mvs-tract .tagline, .mvs-tract .topbar .volume, .mvs-tract .topbar .load { color: var(--mvs-lace); }
+.mvs-tract .topbar .load.error { color: #ffb3a7; }
+
+.mvs-tract .topbar .segmented button {
+  border: 1px solid #8c617e;
+  border-radius: 3px;
+  background: #1b101f;
+  color: var(--mvs-lace);
+  box-shadow: none;
+}
+.mvs-tract .topbar .segmented button:hover { border-color: var(--mvs-petal); }
+.mvs-tract .topbar .segmented button.on {
+  background: var(--mvs-petal);
+  border-color: var(--mvs-petal);
+  color: var(--mvs-night);
+  font-weight: 800;
+}
+.mvs-tract .screen, .mvs-tract .action-bar { border-color: #70445e; }
+.mvs-tract .screen.focus { border-color: var(--mvs-petal); }
+.mvs-tract .screen-head { background: #1d101c; }
+
+.mvs-tract-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: center;
+}
+.mvs-tract-links a, .mvs-theme-return {
+  color: var(--mvs-lace, #eaf7ff);
+  font-family: system-ui, sans-serif;
+  font-size: .8rem;
+  text-underline-offset: .22em;
+}
+.mvs-tract-links a:first-child { color: var(--mvs-lemon); font-weight: 800; }
+.mvs-tract :focus-visible { outline-color: var(--mvs-lemon); }
+
+@media (max-width: 640px) {
+  .mvs-tract .topbar { padding: 8px; gap: 7px 9px; }
+  .mvs-tract .topbar-right { gap: 6px 10px; }
+  .mvs-tract .topbar .segmented { gap: 4px; }
+  .mvs-tract .topbar .segmented button { padding-inline: 8px; }
+}

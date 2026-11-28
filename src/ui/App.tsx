@@ -34,7 +34,7 @@ function showId(): string | null {
   return id && /^[\w-]+$/.test(id) ? id : null;
 }
 
-function TopBar() {
+function TopBar({ gyaru }: { gyaru: boolean }) {
   const started = useStore((s) => s.started);
   const volume = useStore((s) => s.volume);
   const setVolume = useStore((s) => s.setVolume);
@@ -53,8 +53,8 @@ function TopBar() {
   return (
     <header className="topbar">
       <div className="brand">
-        <span className="wordmark">Chimera</span>
-        <span className="tagline">A voice grown from a simulated airway</span>
+        <span className="wordmark">{gyaru ? "MVS" : "Chimera"}{gyaru && <span aria-hidden="true">✦</span>}</span>
+        <span className="tagline" lang={gyaru ? "ko" : undefined}>{gyaru ? "먀용의 성대 실험실 · CHIMERA" : "A voice grown from a simulated airway"}</span>
       </div>
       <Segmented<Mode>
         label="Mode"
@@ -78,8 +78,14 @@ function TopBar() {
         }
       />
       <div className="topbar-right">
+        {gyaru && (
+          <nav className="mvs-tract-links" lang="ko" aria-label="먀용 실험실 탐색">
+            <a href="/studio/">악보 작업실</a>
+            <a href="?theme=original" lang="ko">원본 테마</a>
+          </nav>
+        )}
         <label className="volume">
-          <span>Volume</span>
+          <span lang={gyaru ? "ko" : undefined}>{gyaru ? "볼륨" : "Volume"}</span>
           <input type="range" min={0} max={1} step={0.01} value={volume} onChange={(e) => setVolume(Number(e.target.value))} style={{ "--pos": `${volume * 100}%` } as React.CSSProperties} />
         </label>
         {stopped ? (
@@ -89,13 +95,16 @@ function TopBar() {
             Engine load {Math.round(load * 100)} %{light && " · 32 kHz"}
           </span>
         ) : null}
+        {!inPlugin && !gyaru && (
+          <a className="mvs-theme-return" href="./" lang="ko">먀용 테마</a>
+        )}
         {!inPlugin && (
           <a className="plugin-link" href="/plugin/" title="CHIMERA as a CLAP, VST3 and AU plugin for your DAW">
             Plugin
           </a>
         )}
         {!inPlugin && (
-          <a className="repo-link" href="https://github.com/jamesondh/chimera-vocal-synth" target="_blank" rel="noreferrer" aria-label="Source code on GitHub" title="Source code on GitHub">
+          <a className="repo-link" href="https://github.com/jamesondh/chimera-vocal-synth" target="_blank" rel="noreferrer" aria-label={gyaru ? "CHIMERA 원본 소스 (GitHub)" : "Source code on GitHub"} title={gyaru ? "CHIMERA 원본 소스" : "Source code on GitHub"}>
             <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true">
               <path
                 fill="currentColor"
@@ -217,9 +226,10 @@ export function App() {
 
 function Wall() {
   const mode = useStore((s) => s.mode);
+  const gyaru = !inPlugin && new URLSearchParams(window.location.search).get("theme") !== "original";
   return (
-    <div className={`app text-colors mode-${mode}${inPlugin ? " in-plugin" : ""}`}>
-      <TopBar />
+    <div className={`app text-colors mode-${mode}${inPlugin ? " in-plugin" : ""}${gyaru ? " mvs-tract" : ""}`}>
+      <TopBar gyaru={gyaru} />
       <main className={`wall wall-${mode}`}>
         <LeftScreen />
         {mode === "play" ? <PlayRight /> : mode === "speak" ? <SpeakRight /> : mode === "sing" ? <SingRight /> : mode === "beatbox" ? <BeatboxRight /> : <BestiaryRight />}

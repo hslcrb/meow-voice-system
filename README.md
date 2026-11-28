@@ -10,15 +10,24 @@ MVS는 고양이풍·인간풍·혼합 가상 보컬을 실험하는 한국어 �
 
 [모바일 작업실 화면](docs/mvs/assets/studio-mobile.webp) · [실행과 사용법](docs/mvs/STUDIO.md)
 
-## 작업실을 열어 보기
+## 성대 실험실과 악보 작업실
 
-저장소 루트에서 실행합니다. 새 작업실은 로컬 정적 페이지이며, 기존 CHIMERA 개발 서버와 별개입니다.
+| 화면 | 무엇을 하나요? |
+| --- | --- |
+| **성대 실험실** `/` | 원본 CHIMERA의 2D·3D 성도와 성대 진동을 직접 조작해요. 화면 바깥만 먀용 갸루 테마로 바꿨어요. **원본 테마**를 누르면 기존 외형과 비교할 수 있습니다. |
+| **악보 작업실** `/studio/` | 가사와 음정을 입력해 WAV를 만드는 별도 실험판이에요. 성대 실험실의 물리 엔진이 악보 작업실 WAV를 만드는 것은 아닙니다. |
+
+두 화면을 함께 열려면 Rust와 Bun이 있는 환경에서 실행합니다.
 
 ```sh
-python3 -m http.server 8000
+rustup target add wasm32-unknown-unknown
+bun install --frozen-lockfile
+bun run dev
 ```
 
-브라우저에서 [http://localhost:8000/studio/](http://localhost:8000/studio/)를 엽니다. 사용자 제공 JSON과 권리 있는 반주 WAV를 준비하세요. [입력 형식·음악 내보내기](docs/mvs/STUDIO.md)
+[성대 실험실 · localhost:5317](http://127.0.0.1:5317/) · [악보 작업실](http://127.0.0.1:5317/studio/) · [그래픽 보존 검증](docs/mvs/DEVLOG.md#성대는-원본-실험실은-갸루)
+
+악보 작업실만 가볍게 실행하려면 `python3 -m http.server 8000 --bind 127.0.0.1`을 실행한 후 [localhost:8000/studio/](http://127.0.0.1:8000/studio/)를 여세요. [입력 형식·음악 내보내기](docs/mvs/STUDIO.md)
 
 터미널에서 음악만 만들려면:
 

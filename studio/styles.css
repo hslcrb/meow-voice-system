@@ -15,3 +15,12 @@
 .lrc-audit{margin-top:10px;padding-top:10px;border-top:1px dashed var(--ink)}.lrc-audit ol{max-height:180px;overflow:auto;padding-inline-start:1.5rem;margin:.5rem 0 0;font-size:.76rem}.lrc-audit li{margin:.3rem 0;overflow-wrap:anywhere}
 
 .score-actions{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:6px}.score-actions .add{margin-top:0}
+
+
+.mast-tract { color: inherit; font-weight: 800; white-space: nowrap; text-underline-offset: .24em; }
+.mast-tract:hover { text-decoration-thickness: 2px; }
+@media (max-width: 540px) { .mast-tract { margin-left: auto; } }
+@media (max-width: 390px) {
+  .mast { min-height: 53px; height: auto; flex-wrap: wrap; column-gap: 9px; row-gap: 1px; padding-block: 6px; }
+  .mast-tract { font-size: .8rem; }
+}

@@ -3,6 +3,7 @@
  * its syllables at import time) — then import and render the app. A failed load can be retried.
  */
 import "./ui/styles.css";
+import "./ui/mvs-tract.css";
 import { initChimera } from "./wasm/chimera.ts";
 
 const root = document.getElementById("root")!;
